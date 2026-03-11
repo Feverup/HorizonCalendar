@@ -104,6 +104,33 @@ final class FrameProviderTests: XCTestCase {
       layoutMargins: .zero,
       scale: 3
     )
+
+    let june2020 = Month(era: 1, year: 2020, month: 06, isInGregorianCalendar: true)
+    let july2020 = Month(era: 1, year: 2020, month: 07, isInGregorianCalendar: true)
+    verticalDayRangeOverrideFrameProvider = FrameProvider(
+      content: CalendarViewContent(
+        calendar: calendar,
+        visibleDateRange: Date.distantPast...Date.distantFuture,
+        monthsLayout: .vertical(options: VerticalMonthsLayoutOptions())
+      )
+      .monthDayInsets(NSDirectionalEdgeInsets(top: 5, leading: 8, bottom: 5, trailing: 8))
+      .interMonthSpacing(20)
+      .verticalDayMargin(20)
+      .horizontalDayMargin(10)
+      .monthDayRangeProvider { [calendar] month in
+        if month == june2020 {
+          return .noDays
+        } else if month == july2020 {
+          let lowerDate = calendar.date(from: DateComponents(year: 2020, month: 07, day: 10))!
+          let upperDate = calendar.date(from: DateComponents(year: 2020, month: 07, day: 20))!
+          return .partialRange(lowerDate...upperDate)
+        }
+        return nil
+      },
+      size: size,
+      layoutMargins: .zero,
+      scale: 3
+    )
   }
 
   func testMaxMonthHeight() {
@@ -930,6 +957,59 @@ final class FrameProviderTests: XCTestCase {
     XCTAssert(frame5 == expectedFrame5, "Incorrect frame for scroll-to-item.")
   }
 
+  func testFrameOfNoDaysMonth() {
+    let june2020 = Month(era: 1, year: 2020, month: 06, isInGregorianCalendar: true)
+    let monthHeaderHeight: CGFloat = 50
+
+    let monthFrame = verticalDayRangeOverrideFrameProvider.frameOfMonth(
+      june2020,
+      withOrigin: CGPoint(x: 0, y: 200),
+      monthHeaderHeight: monthHeaderHeight
+    )
+
+    // .noDays months should have compact height: header + top inset + bottom inset = 50 + 5 + 5 = 60
+    let expectedHeight: CGFloat = monthHeaderHeight + 5 + 5
+    XCTAssertEqual(
+      monthFrame.height.alignedToPixel(forScreenWithScale: 3),
+      expectedHeight.alignedToPixel(forScreenWithScale: 3),
+      "A .noDays month should only have header height + top/bottom insets"
+    )
+  }
+
+  func testFrameOfPartialRangeMonth() {
+    let july2020 = Month(era: 1, year: 2020, month: 07, isInGregorianCalendar: true)
+    let monthHeaderHeight: CGFloat = 50
+
+    let partialFrame = verticalDayRangeOverrideFrameProvider.frameOfMonth(
+      july2020,
+      withOrigin: CGPoint(x: 0, y: 200),
+      monthHeaderHeight: monthHeaderHeight
+    )
+
+    let fullFrame = verticalFrameProvider.frameOfMonth(
+      july2020,
+      withOrigin: CGPoint(x: 0, y: 200),
+      monthHeaderHeight: monthHeaderHeight
+    )
+
+    XCTAssert(
+      partialFrame.height < fullFrame.height,
+      "Partial range month should be shorter than the full month"
+    )
+
+    // Jul 10-20 spans 2 week rows (Jul 10 is Fri in row 1, Jul 20 is Mon in row 3 → rows 1-2 adjusted = 2 rows)
+    // Verify a day within range produces a valid frame
+    let dayFrame = verticalDayRangeOverrideFrameProvider.frameOfDay(
+      Day(month: july2020, day: 15),
+      inMonthWithOrigin: CGPoint(x: 0, y: 200),
+      monthHeaderHeight: monthHeaderHeight
+    )
+    XCTAssert(
+      partialFrame.contains(dayFrame),
+      "Day frame within partial range should be contained within the month frame"
+    )
+  }
+
   // MARK: Private
 
   private let calendar = Calendar(identifier: .gregorian)
@@ -941,6 +1021,7 @@ final class FrameProviderTests: XCTestCase {
   private var verticalPartialMonthFrameProvider: FrameProvider!
   private var horizontalFrameProvider: FrameProvider!
   private var rectangularDayFrameProvider: FrameProvider!
+  private var verticalDayRangeOverrideFrameProvider: FrameProvider!
 
 }
 

@@ -390,6 +390,11 @@ final class FrameProvider {
 
   private func heightOfMonth(_ month: Month, monthHeaderHeight: CGFloat) -> CGFloat {
     let numberOfWeekRows = numberOfWeekRows(in: month)
+    if numberOfWeekRows == 0 {
+      return monthHeaderHeight +
+        content.monthDayInsets.top +
+        content.monthDayInsets.bottom
+    }
     return monthHeaderHeight +
       content.monthDayInsets.top +
       heightOfDaysOfTheWeekRowInMonth() +
@@ -408,7 +413,12 @@ final class FrameProvider {
     }
 
     let missingRows: Int
-    if
+    if case .partialRange(let dateRange) = content.monthDayRangeProvider?(day.month) {
+      let firstDate = calendar.firstDate(of: day.month)
+      let firstDay = calendar.day(containing: firstDate)
+      let rangeFirstDay = max(calendar.day(containing: dateRange.lowerBound), firstDay)
+      missingRows = calendar.rowInMonth(for: calendar.startDate(of: rangeFirstDay))
+    } else if
       !content.monthsLayout.alwaysShowCompleteBoundaryMonths,
       day.month == content.monthRange.lowerBound
     {
@@ -424,6 +434,25 @@ final class FrameProvider {
   /// Gets the number of week rows in a particular month, taking into account whether the month is a
   /// boundary month that's only showing a subset of days.
   private func numberOfWeekRows(in month: Month) -> Int {
+    if let override = content.monthDayRangeProvider?(month) {
+      switch override {
+      case .fullMonth:
+        break
+      case .noDays:
+        return 0
+      case .partialRange(let dateRange):
+        let firstDate = calendar.firstDate(of: month)
+        let firstDay = calendar.day(containing: firstDate)
+        let lastDate = calendar.lastDate(of: month)
+        let lastDay = calendar.day(containing: lastDate)
+        let rangeFirstDay = max(calendar.day(containing: dateRange.lowerBound), firstDay)
+        let rangeLastDay = min(calendar.day(containing: dateRange.upperBound), lastDay)
+        let firstRow = calendar.rowInMonth(for: calendar.startDate(of: rangeFirstDay))
+        let lastRow = calendar.rowInMonth(for: calendar.startDate(of: rangeLastDay))
+        return lastRow - firstRow + 1
+      }
+    }
+
     let rowOfLastDateInMonth: Int
     if month == content.monthRange.lowerBound, month == content.monthRange.upperBound {
       let firstDayOfOnlyMonth = content.dayRange.lowerBound
@@ -453,9 +482,7 @@ final class FrameProvider {
   /// For example, the returned height value for 5 week rows will be 5x the `daySize.height`, plus 4x
   /// the `content.verticalDayMargin`.
   private func heightOfDayContent(forNumberOfWeekRows numberOfWeekRows: Int) -> CGFloat {
-    guard numberOfWeekRows > 0 else {
-      fatalError("Cannot calculate the height of day content if `numberOfWeekRows` is <= 0.")
-    }
+    guard numberOfWeekRows > 0 else { return 0 }
     return (CGFloat(numberOfWeekRows) * daySize.height) +
       (CGFloat(numberOfWeekRows - 1) * content.verticalDayMargin)
   }

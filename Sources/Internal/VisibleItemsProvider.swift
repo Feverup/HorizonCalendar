@@ -38,7 +38,7 @@ final class VisibleItemsProvider {
       monthsLayout: content.monthsLayout,
       monthRange: content.monthRange,
       dayRange: content.dayRange,
-      monthDayRangeOverride: { [content] month in content.monthDayRangeOverride(for: month) }
+      monthlyDayRange: { [content] month in content.monthlyDayRange(for: month) }
     )
 
     frameProvider = FrameProvider(
@@ -865,7 +865,7 @@ final class VisibleItemsProvider {
   }
 
   private func isDayHiddenByMonthOverride(_ day: Day) -> Bool {
-    guard let override = content.monthDayRangeOverride(for: day.month) else { return false }
+    guard let override = content.monthlyDayRange(for: day.month) else { return false }
     return !override.isDayVisible(day, calendar: calendar)
   }
 
@@ -1067,7 +1067,7 @@ final class VisibleItemsProvider {
       let framesForDays: [Day: CGRect]
       if let existingFrames = context.framesForDaysForVisibleMonths[month] {
         framesForDays = existingFrames
-      } else if case .noDays = content.monthDayRangeOverride(for: month) {
+      } else if case .noDays = content.monthlyDayRange(for: month) {
         framesForDays = [:]
       } else {
         continue

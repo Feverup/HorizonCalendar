@@ -37,7 +37,7 @@ final class PartialMonthVisibilityDemoViewController: BaseDemoViewController {
     .verticalDayMargin(8)
     .horizontalDayMargin(8)
 
-    .monthDayRangeProvider { [calendar] month in
+    .monthlyDayRangeProvider { [calendar] month in
       if month.month == 04, month.year == 2020 {
         return .noDays
       } else if month.month == 06, month.year == 2020 {

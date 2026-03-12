@@ -107,7 +107,7 @@ final class FrameProviderTests: XCTestCase {
 
     let june2020 = Month(era: 1, year: 2020, month: 06, isInGregorianCalendar: true)
     let july2020 = Month(era: 1, year: 2020, month: 07, isInGregorianCalendar: true)
-    verticalDayRangeOverrideFrameProvider = FrameProvider(
+    verticalMonthlyDayRangeFrameProvider = FrameProvider(
       content: CalendarViewContent(
         calendar: calendar,
         visibleDateRange: Date.distantPast...Date.distantFuture,
@@ -117,7 +117,7 @@ final class FrameProviderTests: XCTestCase {
       .interMonthSpacing(20)
       .verticalDayMargin(20)
       .horizontalDayMargin(10)
-      .monthDayRangeProvider { [calendar] month in
+      .monthlyDayRangeProvider { [calendar] month in
         if month == june2020 {
           return .noDays
         } else if month == july2020 {
@@ -961,7 +961,7 @@ final class FrameProviderTests: XCTestCase {
     let june2020 = Month(era: 1, year: 2020, month: 06, isInGregorianCalendar: true)
     let monthHeaderHeight: CGFloat = 50
 
-    let monthFrame = verticalDayRangeOverrideFrameProvider.frameOfMonth(
+    let monthFrame = verticalMonthlyDayRangeFrameProvider.frameOfMonth(
       june2020,
       withOrigin: CGPoint(x: 0, y: 200),
       monthHeaderHeight: monthHeaderHeight
@@ -980,7 +980,7 @@ final class FrameProviderTests: XCTestCase {
     let july2020 = Month(era: 1, year: 2020, month: 07, isInGregorianCalendar: true)
     let monthHeaderHeight: CGFloat = 50
 
-    let partialFrame = verticalDayRangeOverrideFrameProvider.frameOfMonth(
+    let partialFrame = verticalMonthlyDayRangeFrameProvider.frameOfMonth(
       july2020,
       withOrigin: CGPoint(x: 0, y: 200),
       monthHeaderHeight: monthHeaderHeight
@@ -997,7 +997,7 @@ final class FrameProviderTests: XCTestCase {
       "Partial range month should be shorter than the full month"
     )
 
-    let dayFrame = verticalDayRangeOverrideFrameProvider.frameOfDay(
+    let dayFrame = verticalMonthlyDayRangeFrameProvider.frameOfDay(
       Day(month: july2020, day: 15),
       inMonthWithOrigin: CGPoint(x: 0, y: 200),
       monthHeaderHeight: monthHeaderHeight
@@ -1019,7 +1019,7 @@ final class FrameProviderTests: XCTestCase {
         monthsLayout: .vertical(options: VerticalMonthsLayoutOptions())
       )
       .monthDayInsets(NSDirectionalEdgeInsets(top: 5, leading: 8, bottom: 5, trailing: 8))
-      .monthDayRangeProvider { [calendar] month in
+      .monthlyDayRangeProvider { [calendar] month in
         if month == march2020 {
           let lowerDate = calendar.date(from: DateComponents(year: 2020, month: 01, day: 10))!
           let upperDate = calendar.date(from: DateComponents(year: 2020, month: 01, day: 20))!
@@ -1060,7 +1060,7 @@ final class FrameProviderTests: XCTestCase {
       .interMonthSpacing(20)
       .verticalDayMargin(20)
       .horizontalDayMargin(10)
-      .monthDayRangeProvider { _ in .fullMonth },
+      .monthlyDayRangeProvider { _ in .fullMonth },
       size: CGSize(width: 320, height: 480),
       layoutMargins: .zero,
       scale: 3
@@ -1101,7 +1101,7 @@ final class FrameProviderTests: XCTestCase {
       .interMonthSpacing(20)
       .verticalDayMargin(20)
       .horizontalDayMargin(10)
-      .monthDayRangeProvider { [calendar] month in
+      .monthlyDayRangeProvider { [calendar] month in
         if month == july2020 {
           let lowerDate = calendar.date(from: DateComponents(year: 2020, month: 07, day: 06))!
           let upperDate = calendar.date(from: DateComponents(year: 2020, month: 07, day: 08))!
@@ -1131,7 +1131,7 @@ final class FrameProviderTests: XCTestCase {
       "Single week row month should be shorter than full month"
     )
 
-    let twoRowFrame = verticalDayRangeOverrideFrameProvider.frameOfMonth(
+    let twoRowFrame = verticalMonthlyDayRangeFrameProvider.frameOfMonth(
       july2020,
       withOrigin: CGPoint(x: 0, y: 0),
       monthHeaderHeight: monthHeaderHeight
@@ -1160,7 +1160,7 @@ final class FrameProviderTests: XCTestCase {
       .interMonthSpacing(20)
       .verticalDayMargin(20)
       .horizontalDayMargin(10)
-      .monthDayRangeProvider { [calendar] month in
+      .monthlyDayRangeProvider { [calendar] month in
         if month == may2020 {
           let lowerDate = calendar.date(from: DateComponents(year: 2020, month: 05, day: 10))!
           let upperDate = calendar.date(from: DateComponents(year: 2020, month: 05, day: 20))!
@@ -1212,7 +1212,7 @@ final class FrameProviderTests: XCTestCase {
   private var verticalPartialMonthFrameProvider: FrameProvider!
   private var horizontalFrameProvider: FrameProvider!
   private var rectangularDayFrameProvider: FrameProvider!
-  private var verticalDayRangeOverrideFrameProvider: FrameProvider!
+  private var verticalMonthlyDayRangeFrameProvider: FrameProvider!
 
 }
 

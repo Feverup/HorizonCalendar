@@ -413,7 +413,7 @@ final class FrameProvider {
     }
 
     let missingRows: Int
-    if let override = content.monthDayRangeOverride(for: day.month), case .partialRange = override {
+    if let override = content.monthlyDayRange(for: day.month), case .partialRange = override {
       guard let range = override.partialDayRange(in: day.month, calendar: calendar) else {
         return 0
       }
@@ -442,7 +442,7 @@ final class FrameProvider {
 
   /// Gets the number of week rows in a particular month, taking into account whether the month is only showing a subset of days.
   private func numberOfWeekRows(in month: Month) -> Int {
-    if let override = content.monthDayRangeOverride(for: month) {
+    if let override = content.monthlyDayRange(for: month) {
       switch override {
       case .fullMonth:
         break

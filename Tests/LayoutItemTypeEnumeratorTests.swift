@@ -400,6 +400,106 @@ final class LayoutItemTypeEnumeratorTests: XCTestCase {
     XCTAssertEqual(forwardItems[indexOfLastDecDay + 1], .monthHeader(jan2021))
   }
 
+  func testEnumeratingHorizontalItemsWithNoDaysMonth() throws {
+    let dec2020 = Month(era: 1, year: 2020, month: 12, isInGregorianCalendar: true)
+    let nov2020 = Month(era: 1, year: 2020, month: 11, isInGregorianCalendar: true)
+    let jan2021 = Month(era: 1, year: 2021, month: 01, isInGregorianCalendar: true)
+
+    let monthRange = nov2020...jan2021
+    let dayRange = Day(month: nov2020, day: 1)...Day(month: jan2021, day: 31)
+
+    let enumerator = LayoutItemTypeEnumerator(
+      calendar: calendar,
+      monthsLayout: .horizontal(
+        options: HorizontalMonthsLayoutOptions(maximumFullyVisibleMonths: 1)
+      ),
+      monthRange: monthRange,
+      dayRange: dayRange,
+      monthDayRangeProvider: { month in
+        month == dec2020 ? .noDays : nil
+      }
+    )
+
+    var forwardItems: [LayoutItem.ItemType] = []
+
+    enumerator.enumerateItemTypes(
+      startingAt: .monthHeader(nov2020),
+      itemTypeHandlerLookingBackwards: { _, _ in },
+      itemTypeHandlerLookingForwards: { itemType, _ in
+        forwardItems.append(itemType)
+      }
+    )
+
+    for item in forwardItems {
+      if case .day(let day) = item {
+        XCTAssertNotEqual(
+          day.month, dec2020,
+          "No Dec days should appear in horizontal layout for .noDays month"
+        )
+      }
+      if case .dayOfWeekInMonth(_, let month) = item {
+        XCTAssertNotEqual(
+          month, dec2020,
+          "No Dec dayOfWeek should appear in horizontal layout for .noDays month"
+        )
+      }
+    }
+    let decemberHeaderIndex = try XCTUnwrap(forwardItems.firstIndex { $0 == .monthHeader(dec2020) }, "Dec month header should appear")
+    XCTAssertEqual(
+      forwardItems[decemberHeaderIndex + 1],
+      .monthHeader(jan2021),
+      "Jan month header should follow Dec header"
+    )
+  }
+
+  func testEnumeratingHorizontalItemsWithPartialRangeMonth() {
+    let dec2020 = Month(era: 1, year: 2020, month: 12, isInGregorianCalendar: true)
+    let nov2020 = Month(era: 1, year: 2020, month: 11, isInGregorianCalendar: true)
+    let jan2021 = Month(era: 1, year: 2021, month: 01, isInGregorianCalendar: true)
+
+    let monthRange = nov2020...jan2021
+    let dayRange = Day(month: nov2020, day: 1)...Day(month: jan2021, day: 31)
+
+    let partialLowerDate = calendar.date(from: DateComponents(year: 2020, month: 12, day: 15))!
+    let partialUpperDate = calendar.date(from: DateComponents(year: 2020, month: 12, day: 25))!
+
+    let enumerator = LayoutItemTypeEnumerator(
+      calendar: calendar,
+      monthsLayout: .horizontal(
+        options: HorizontalMonthsLayoutOptions(maximumFullyVisibleMonths: 1)
+      ),
+      monthRange: monthRange,
+      dayRange: dayRange,
+      monthDayRangeProvider: { month in
+        month == dec2020 ? .partialRange(partialLowerDate...partialUpperDate) : nil
+      }
+    )
+
+    var forwardItems: [LayoutItem.ItemType] = []
+
+    enumerator.enumerateItemTypes(
+      startingAt: .monthHeader(nov2020),
+      itemTypeHandlerLookingBackwards: { _, _ in },
+      itemTypeHandlerLookingForwards: { itemType, _ in
+        forwardItems.append(itemType)
+      }
+    )
+
+    let decDays = forwardItems.compactMap { item -> Day? in
+      if case .day(let day) = item, day.month == dec2020 { return day }
+      return nil
+    }
+
+    XCTAssertEqual(decDays.first?.day, 15, "First Dec day should be 15")
+    XCTAssertEqual(decDays.last?.day, 25, "Last Dec day should be 25")
+    XCTAssertEqual(decDays.count, 11, "Should have exactly 11 Dec days (15-25)")
+
+    XCTAssert(
+      forwardItems.contains(.monthHeader(jan2021)),
+      "Jan header should appear after partial Dec range"
+    )
+  }
+
   // MARK: Private
 
   private let calendar = Calendar(identifier: .gregorian)

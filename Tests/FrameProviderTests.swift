@@ -997,8 +997,6 @@ final class FrameProviderTests: XCTestCase {
       "Partial range month should be shorter than the full month"
     )
 
-    // Jul 10-20 spans 2 week rows (Jul 10 is Fri in row 1, Jul 20 is Mon in row 3 → rows 1-2 adjusted = 2 rows)
-    // Verify a day within range produces a valid frame
     let dayFrame = verticalDayRangeOverrideFrameProvider.frameOfDay(
       Day(month: july2020, day: 15),
       inMonthWithOrigin: CGPoint(x: 0, y: 200),
@@ -1007,6 +1005,199 @@ final class FrameProviderTests: XCTestCase {
     XCTAssert(
       partialFrame.contains(dayFrame),
       "Day frame within partial range should be contained within the month frame"
+    )
+  }
+
+  func testFrameOfNonOverlappingPartialRange() {
+    let march2020 = Month(era: 1, year: 2020, month: 03, isInGregorianCalendar: true)
+    let monthHeaderHeight: CGFloat = 50
+
+    let provider = FrameProvider(
+      content: CalendarViewContent(
+        calendar: calendar,
+        visibleDateRange: Date.distantPast...Date.distantFuture,
+        monthsLayout: .vertical(options: VerticalMonthsLayoutOptions())
+      )
+      .monthDayInsets(NSDirectionalEdgeInsets(top: 5, leading: 8, bottom: 5, trailing: 8))
+      .monthDayRangeProvider { [calendar] month in
+        if month == march2020 {
+          let lowerDate = calendar.date(from: DateComponents(year: 2020, month: 01, day: 10))!
+          let upperDate = calendar.date(from: DateComponents(year: 2020, month: 01, day: 20))!
+          return .partialRange(lowerDate...upperDate)
+        }
+        return nil
+      },
+      size: CGSize(width: 320, height: 480),
+      layoutMargins: .zero,
+      scale: 3
+    )
+
+    let frame = provider.frameOfMonth(
+      march2020,
+      withOrigin: CGPoint(x: 0, y: 0),
+      monthHeaderHeight: monthHeaderHeight
+    )
+
+    let expectedHeight: CGFloat = monthHeaderHeight + 5 + 5
+    XCTAssertEqual(
+      frame.height.alignedToPixel(forScreenWithScale: 3),
+      expectedHeight.alignedToPixel(forScreenWithScale: 3),
+      "A partialRange that doesn't overlap the month should behave like .noDays"
+    )
+  }
+
+  func testFrameOfFullMonthOverrideSameAsNil() {
+    let april2020 = Month(era: 1, year: 2020, month: 04, isInGregorianCalendar: true)
+    let monthHeaderHeight: CGFloat = 50
+
+    let fullMonthProvider = FrameProvider(
+      content: CalendarViewContent(
+        calendar: calendar,
+        visibleDateRange: Date.distantPast...Date.distantFuture,
+        monthsLayout: .vertical(options: VerticalMonthsLayoutOptions())
+      )
+      .monthDayInsets(NSDirectionalEdgeInsets(top: 5, leading: 8, bottom: 5, trailing: 8))
+      .interMonthSpacing(20)
+      .verticalDayMargin(20)
+      .horizontalDayMargin(10)
+      .monthDayRangeProvider { _ in .fullMonth },
+      size: CGSize(width: 320, height: 480),
+      layoutMargins: .zero,
+      scale: 3
+    )
+
+    let overrideFrame = fullMonthProvider.frameOfMonth(
+      april2020,
+      withOrigin: CGPoint(x: 0, y: 200),
+      monthHeaderHeight: monthHeaderHeight
+    )
+    .alignedToPixels(forScreenWithScale: 3)
+
+    let defaultFrame = verticalFrameProvider.frameOfMonth(
+      april2020,
+      withOrigin: CGPoint(x: 0, y: 200),
+      monthHeaderHeight: monthHeaderHeight
+    )
+    .alignedToPixels(forScreenWithScale: 3)
+
+    XCTAssertEqual(
+      overrideFrame,
+      defaultFrame,
+      ".fullMonth override should produce the same frame as nil (no override)"
+    )
+  }
+
+  func testFrameOfPartialRangeSingleWeekRow() {
+    let july2020 = Month(era: 1, year: 2020, month: 07, isInGregorianCalendar: true)
+    let monthHeaderHeight: CGFloat = 50
+
+    let provider = FrameProvider(
+      content: CalendarViewContent(
+        calendar: calendar,
+        visibleDateRange: Date.distantPast...Date.distantFuture,
+        monthsLayout: .vertical(options: VerticalMonthsLayoutOptions())
+      )
+      .monthDayInsets(NSDirectionalEdgeInsets(top: 5, leading: 8, bottom: 5, trailing: 8))
+      .interMonthSpacing(20)
+      .verticalDayMargin(20)
+      .horizontalDayMargin(10)
+      .monthDayRangeProvider { [calendar] month in
+        if month == july2020 {
+          let lowerDate = calendar.date(from: DateComponents(year: 2020, month: 07, day: 06))!
+          let upperDate = calendar.date(from: DateComponents(year: 2020, month: 07, day: 08))!
+          return .partialRange(lowerDate...upperDate)
+        }
+        return nil
+      },
+      size: CGSize(width: 320, height: 480),
+      layoutMargins: .zero,
+      scale: 3
+    )
+
+    let singleRowFrame = provider.frameOfMonth(
+      july2020,
+      withOrigin: CGPoint(x: 0, y: 0),
+      monthHeaderHeight: monthHeaderHeight
+    )
+
+    let fullFrame = verticalFrameProvider.frameOfMonth(
+      july2020,
+      withOrigin: CGPoint(x: 0, y: 0),
+      monthHeaderHeight: monthHeaderHeight
+    )
+
+    XCTAssert(
+      singleRowFrame.height < fullFrame.height,
+      "Single week row month should be shorter than full month"
+    )
+
+    let twoRowFrame = verticalDayRangeOverrideFrameProvider.frameOfMonth(
+      july2020,
+      withOrigin: CGPoint(x: 0, y: 0),
+      monthHeaderHeight: monthHeaderHeight
+    )
+
+    XCTAssert(
+      singleRowFrame.height < twoRowFrame.height,
+      "Single week row month should be shorter than two-row partial month"
+    )
+  }
+
+  func testFrameOfBoundaryMonthWithPartialRange() {
+    let may2020 = Month(era: 1, year: 2020, month: 05, isInGregorianCalendar: true)
+    let monthHeaderHeight: CGFloat = 50
+
+    let lowerBoundDate = calendar.date(from: DateComponents(year: 2020, month: 05, day: 01))!
+    let upperBoundDate = calendar.date(from: DateComponents(year: 2020, month: 07, day: 31))!
+
+    let provider = FrameProvider(
+      content: CalendarViewContent(
+        calendar: calendar,
+        visibleDateRange: lowerBoundDate...upperBoundDate,
+        monthsLayout: .vertical(options: VerticalMonthsLayoutOptions())
+      )
+      .monthDayInsets(NSDirectionalEdgeInsets(top: 5, leading: 8, bottom: 5, trailing: 8))
+      .interMonthSpacing(20)
+      .verticalDayMargin(20)
+      .horizontalDayMargin(10)
+      .monthDayRangeProvider { [calendar] month in
+        if month == may2020 {
+          let lowerDate = calendar.date(from: DateComponents(year: 2020, month: 05, day: 10))!
+          let upperDate = calendar.date(from: DateComponents(year: 2020, month: 05, day: 20))!
+          return .partialRange(lowerDate...upperDate)
+        }
+        return nil
+      },
+      size: CGSize(width: 320, height: 480),
+      layoutMargins: .zero,
+      scale: 3
+    )
+
+    let partialFrame = provider.frameOfMonth(
+      may2020,
+      withOrigin: CGPoint(x: 0, y: 0),
+      monthHeaderHeight: monthHeaderHeight
+    )
+
+    let fullFrame = verticalFrameProvider.frameOfMonth(
+      may2020,
+      withOrigin: CGPoint(x: 0, y: 0),
+      monthHeaderHeight: monthHeaderHeight
+    )
+
+    XCTAssert(
+      partialFrame.height < fullFrame.height,
+      "Partial range on boundary month should produce a shorter frame"
+    )
+
+    let dayFrame = provider.frameOfDay(
+      Day(month: may2020, day: 15),
+      inMonthWithOrigin: CGPoint(x: 0, y: 0),
+      monthHeaderHeight: monthHeaderHeight
+    )
+    XCTAssert(
+      partialFrame.contains(dayFrame),
+      "Day within partial range should be contained in the boundary month frame"
     )
   }
 

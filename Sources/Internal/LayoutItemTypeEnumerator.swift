@@ -29,13 +29,13 @@ final class LayoutItemTypeEnumerator {
     monthsLayout: MonthsLayout,
     monthRange: MonthRange,
     dayRange: DayRange,
-    monthDayRangeProvider: ((Month) -> CalendarViewContent.MonthDayRangeOverride?)? = nil
+    monthDayRangeOverride: ((Month) -> CalendarViewContent.MonthDayRangeOverride?)? = nil
   ) {
     self.calendar = calendar
     self.monthsLayout = monthsLayout
     self.monthRange = monthRange
     self.dayRange = dayRange
-    self.monthDayRangeProvider = monthDayRangeProvider
+    self.monthDayRangeOverride = monthDayRangeOverride
   }
 
   // MARK: Internal
@@ -70,18 +70,18 @@ final class LayoutItemTypeEnumerator {
   private let monthsLayout: MonthsLayout
   private let monthRange: MonthRange
   private let dayRange: DayRange
-  private let monthDayRangeProvider: ((Month) -> CalendarViewContent.MonthDayRangeOverride?)?
+  private let monthDayRangeOverride: ((Month) -> CalendarViewContent.MonthDayRangeOverride?)?
 
   private func isItemTypeInRange(_ itemType: LayoutItem.ItemType) -> Bool {
     switch itemType {
     case .monthHeader(let month):
       return monthRange.contains(month)
     case .dayOfWeekInMonth(_, let month):
-      if case .noDays = monthDayRangeProvider?(month) { return false }
+      if case .noDays = monthDayRangeOverride?(month) { return false }
       return monthRange.contains(month)
     case .day(let day):
       guard dayRange.contains(day) else { return false }
-      if let override = monthDayRangeProvider?(day.month) {
+      if let override = monthDayRangeOverride?(day.month) {
         return override.isDayVisible(day, calendar: calendar)
       }
       return true
@@ -92,7 +92,7 @@ final class LayoutItemTypeEnumerator {
     switch itemType {
     case .monthHeader(let month):
       let previousMonth = calendar.month(byAddingMonths: -1, to: month)
-      if let override = monthDayRangeProvider?(previousMonth) {
+      if let override = monthDayRangeOverride?(previousMonth) {
         switch override {
         case .noDays:
           return .monthHeader(previousMonth)
@@ -120,7 +120,7 @@ final class LayoutItemTypeEnumerator {
     case .day(let day):
       let isFirstDayOfMonth = day.day == 1 || day == dayRange.lowerBound
       let isFirstDayOfPartialRange: Bool
-      if case .partialRange(let dateRange) = monthDayRangeProvider?(day.month) {
+      if case .partialRange(let dateRange) = monthDayRangeOverride?(day.month) {
         isFirstDayOfPartialRange = day <= calendar.day(containing: dateRange.lowerBound)
       } else {
         isFirstDayOfPartialRange = false
@@ -141,7 +141,7 @@ final class LayoutItemTypeEnumerator {
   private func nextItemType(from itemType: LayoutItem.ItemType) -> LayoutItem.ItemType {
     switch itemType {
     case .monthHeader(let month):
-      if case .noDays = monthDayRangeProvider?(month) {
+      if case .noDays = monthDayRangeOverride?(month) {
         let nextMonth = calendar.month(byAddingMonths: 1, to: month)
         return .monthHeader(nextMonth)
       }
@@ -169,7 +169,7 @@ final class LayoutItemTypeEnumerator {
         let nextMonth = calendar.month(byAddingMonths: 1, to: nextDay.month)
         return .monthHeader(nextMonth)
       } else if
-        case .partialRange(let dateRange) = monthDayRangeProvider?(day.month),
+        case .partialRange(let dateRange) = monthDayRangeOverride?(day.month),
         day >= calendar.day(containing: dateRange.upperBound)
       {
         let nextMonth = calendar.month(byAddingMonths: 1, to: day.month)
@@ -184,7 +184,7 @@ final class LayoutItemTypeEnumerator {
     let firstDate = calendar.firstDate(of: month)
     let firstDay = calendar.day(containing: firstDate)
 
-    if case .partialRange(let dateRange) = monthDayRangeProvider?(month) {
+    if case .partialRange(let dateRange) = monthDayRangeOverride?(month) {
       var result = max(firstDay, calendar.day(containing: dateRange.lowerBound))
       if month == dayRange.lowerBound.month {
         result = max(result, dayRange.lowerBound)

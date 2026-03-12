@@ -314,6 +314,8 @@ public final class CalendarViewContent {
   /// Configures the per-month day range override provider.
   ///
   /// `CalendarView` invokes the provided `monthDayRangeProvider` for each month in the visible range.
+  /// Results are cached per-month so the closure is called at most once per month per content instance.
+  ///
   /// Return `.noDays` to hide all days (only the month header is shown), `.partialRange` to show a subset of days,
   /// `.fullMonth` to keep default behavior, or `nil` to keep default behavior.
   ///
@@ -420,7 +422,20 @@ public final class CalendarViewContent {
     overlayItemProvider: (OverlayLayoutContext) -> AnyCalendarItemModel
   )?
 
+  /// Returns the cached `MonthDayRangeOverride` for the given month, invoking
+  /// `monthDayRangeProvider` at most once per month.
+  func monthDayRangeOverride(for month: Month) -> MonthDayRangeOverride? {
+    if let cached = monthDayRangeCache[month] {
+      return cached
+    }
+    let result = monthDayRangeProvider?(month)
+    monthDayRangeCache[month] = result
+    return result
+  }
+
   // MARK: Private
+
+  private var monthDayRangeCache: [Month: MonthDayRangeOverride?] = [:]
 
   /// The default `monthHeaderItemProvider` if no provider has been configured,
   /// or if the existing provider returns nil.

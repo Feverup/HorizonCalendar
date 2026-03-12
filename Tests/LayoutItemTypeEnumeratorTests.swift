@@ -282,7 +282,7 @@ final class LayoutItemTypeEnumeratorTests: XCTestCase {
       monthsLayout: .vertical(options: VerticalMonthsLayoutOptions()),
       monthRange: monthRange,
       dayRange: dayRange,
-      monthDayRangeProvider: { month in
+      monthDayRangeOverride: { month in
         month == dec2020 ? .noDays : nil
       }
     )
@@ -356,7 +356,7 @@ final class LayoutItemTypeEnumeratorTests: XCTestCase {
       monthsLayout: .vertical(options: VerticalMonthsLayoutOptions()),
       monthRange: monthRange,
       dayRange: dayRange,
-      monthDayRangeProvider: { month in
+      monthDayRangeOverride: { month in
         month == dec2020 ? .partialRange(partialDateRange) : nil
       }
     )
@@ -415,7 +415,7 @@ final class LayoutItemTypeEnumeratorTests: XCTestCase {
       ),
       monthRange: monthRange,
       dayRange: dayRange,
-      monthDayRangeProvider: { month in
+      monthDayRangeOverride: { month in
         month == dec2020 ? .noDays : nil
       }
     )
@@ -470,7 +470,7 @@ final class LayoutItemTypeEnumeratorTests: XCTestCase {
       ),
       monthRange: monthRange,
       dayRange: dayRange,
-      monthDayRangeProvider: { month in
+      monthDayRangeOverride: { month in
         month == dec2020 ? .partialRange(partialLowerDate...partialUpperDate) : nil
       }
     )

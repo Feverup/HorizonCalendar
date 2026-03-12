@@ -417,7 +417,16 @@ final class FrameProvider {
       guard let range = override.partialDayRange(in: day.month, calendar: calendar) else {
         return 0
       }
-      missingRows = calendar.rowInMonth(for: calendar.startDate(of: range.lowerBound))
+      var rows = calendar.rowInMonth(for: calendar.startDate(of: range.lowerBound))
+      if
+        !content.monthsLayout.alwaysShowCompleteBoundaryMonths,
+        day.month == content.monthRange.lowerBound
+      {
+        let boundaryRows = calendar.rowInMonth(
+          for: calendar.startDate(of: content.dayRange.lowerBound))
+        rows = max(rows, boundaryRows)
+      }
+      missingRows = rows
     } else if
       !content.monthsLayout.alwaysShowCompleteBoundaryMonths,
       day.month == content.monthRange.lowerBound

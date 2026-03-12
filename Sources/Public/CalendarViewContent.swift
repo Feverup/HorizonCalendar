@@ -521,17 +521,18 @@ extension CalendarViewContent.MonthDayRangeOverride {
     return lower...upper
   }
 
-  /// Whether `day` should be visible under this override.
+  /// Whether `day` should be visible under this override, clamped to the day's month bounds.
   func isDayVisible(_ day: Day, calendar: Calendar) -> Bool {
     switch self {
     case .fullMonth:
       return true
     case .noDays:
       return false
-    case .partialRange(let dateRange):
-      let lowerDay = calendar.day(containing: dateRange.lowerBound)
-      let upperDay = calendar.day(containing: dateRange.upperBound)
-      return day >= lowerDay && day <= upperDay
+    case .partialRange:
+      guard let range = partialDayRange(in: day.month, calendar: calendar) else {
+        return false
+      }
+      return day >= range.lowerBound && day <= range.upperBound
     }
   }
 

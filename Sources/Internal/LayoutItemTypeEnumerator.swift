@@ -185,7 +185,11 @@ final class LayoutItemTypeEnumerator {
     let firstDay = calendar.day(containing: firstDate)
 
     if case .partialRange(let dateRange) = monthDayRangeProvider?(month) {
-      return max(firstDay, calendar.day(containing: dateRange.lowerBound))
+      var result = max(firstDay, calendar.day(containing: dateRange.lowerBound))
+      if month == dayRange.lowerBound.month {
+        result = max(result, dayRange.lowerBound)
+      }
+      return result
     }
 
     if month == dayRange.lowerBound.month {

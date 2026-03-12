@@ -38,7 +38,9 @@ final class PartialMonthVisibilityDemoViewController: BaseDemoViewController {
     .horizontalDayMargin(8)
 
     .monthDayRangeProvider { [calendar] month in
-      if month.month == 06, month.year == 2020 {
+      if month.month == 04, month.year == 2020 {
+        return .noDays
+      } else if month.month == 06, month.year == 2020 {
         let lowerDate = calendar.date(from: DateComponents(year: 2020, month: 06, day: 02))!
         let upperDate = calendar.date(from: DateComponents(year: 2020, month: 06, day: 15))!
         return .partialRange(lowerDate...upperDate)

@@ -413,15 +413,11 @@ final class FrameProvider {
     }
 
     let missingRows: Int
-    if case .partialRange(let dateRange) = content.monthDayRangeProvider?(day.month) {
-      let firstDate = calendar.firstDate(of: day.month)
-      let firstDay = calendar.day(containing: firstDate)
-      let rangeFirstDay = max(calendar.day(containing: dateRange.lowerBound), firstDay)
-      let lastDate = calendar.lastDate(of: day.month)
-      let lastDay = calendar.day(containing: lastDate)
-      let rangeLastDay = min(calendar.day(containing: dateRange.upperBound), lastDay)
-      guard rangeFirstDay <= rangeLastDay else { return 0 }
-      missingRows = calendar.rowInMonth(for: calendar.startDate(of: rangeFirstDay))
+    if let override = content.monthDayRangeProvider?(day.month), case .partialRange = override {
+      guard let range = override.partialDayRange(in: day.month, calendar: calendar) else {
+        return 0
+      }
+      missingRows = calendar.rowInMonth(for: calendar.startDate(of: range.lowerBound))
     } else if
       !content.monthsLayout.alwaysShowCompleteBoundaryMonths,
       day.month == content.monthRange.lowerBound
@@ -443,16 +439,12 @@ final class FrameProvider {
         break
       case .noDays:
         return 0
-      case .partialRange(let dateRange):
-        let firstDate = calendar.firstDate(of: month)
-        let firstDay = calendar.day(containing: firstDate)
-        let lastDate = calendar.lastDate(of: month)
-        let lastDay = calendar.day(containing: lastDate)
-        let rangeFirstDay = max(calendar.day(containing: dateRange.lowerBound), firstDay)
-        let rangeLastDay = min(calendar.day(containing: dateRange.upperBound), lastDay)
-        guard rangeFirstDay <= rangeLastDay else { return 0 }
-        let firstRow = calendar.rowInMonth(for: calendar.startDate(of: rangeFirstDay))
-        let lastRow = calendar.rowInMonth(for: calendar.startDate(of: rangeLastDay))
+      case .partialRange:
+        guard let range = override.partialDayRange(in: month, calendar: calendar) else {
+          return 0
+        }
+        let firstRow = calendar.rowInMonth(for: calendar.startDate(of: range.lowerBound))
+        let lastRow = calendar.rowInMonth(for: calendar.startDate(of: range.upperBound))
         return lastRow - firstRow + 1
       }
     }

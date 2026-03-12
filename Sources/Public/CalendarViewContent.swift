@@ -503,3 +503,36 @@ extension CalendarViewContent {
   }
 
 }
+
+extension CalendarViewContent.MonthDayRangeOverride {
+
+  /// Returns the day range for a `.partialRange` clamped to the given month's bounds,
+  /// or `nil` for `.fullMonth`, `.noDays`, or when the range doesn't overlap the month.
+  func partialDayRange(
+    in month: Month,
+    calendar: Calendar
+  ) -> ClosedRange<Day>? {
+    guard case .partialRange(let dateRange) = self else { return nil }
+    let firstDay = calendar.day(containing: calendar.firstDate(of: month))
+    let lastDay = calendar.day(containing: calendar.lastDate(of: month))
+    let lower = max(calendar.day(containing: dateRange.lowerBound), firstDay)
+    let upper = min(calendar.day(containing: dateRange.upperBound), lastDay)
+    guard lower <= upper else { return nil }
+    return lower...upper
+  }
+
+  /// Whether `day` should be visible under this override.
+  func isDayVisible(_ day: Day, calendar: Calendar) -> Bool {
+    switch self {
+    case .fullMonth:
+      return true
+    case .noDays:
+      return false
+    case .partialRange(let dateRange):
+      let lowerDay = calendar.day(containing: dateRange.lowerBound)
+      let upperDay = calendar.day(containing: dateRange.upperBound)
+      return day >= lowerDay && day <= upperDay
+    }
+  }
+
+}

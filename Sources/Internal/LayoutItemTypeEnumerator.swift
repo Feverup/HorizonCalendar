@@ -80,7 +80,20 @@ final class LayoutItemTypeEnumerator {
       if case .noDays = monthDayRangeProvider?(month) { return false }
       return monthRange.contains(month)
     case .day(let day):
-      return dayRange.contains(day)
+      guard dayRange.contains(day) else { return false }
+        if let override = monthDayRangeProvider?(day.month) {
+            switch override {
+                case .fullMonth:
+                  break
+                case .noDays:
+                  return false
+                case .partialRange(let dateRange):
+                  let lowerDay = calendar.day(containing: dateRange.lowerBound)
+                  let upperDay = calendar.day(containing: dateRange.upperBound)
+                  if day < lowerDay || day > upperDay { return false }
+            }
+        }
+      return true
     }
   }
 
@@ -88,13 +101,17 @@ final class LayoutItemTypeEnumerator {
     switch itemType {
     case .monthHeader(let month):
       let previousMonth = calendar.month(byAddingMonths: -1, to: month)
-      if case .noDays = monthDayRangeProvider?(previousMonth) {
-        return .monthHeader(previousMonth)
-      }
-      if case .partialRange(let dateRange) = monthDayRangeProvider?(previousMonth) {
-        let lastDate = calendar.lastDate(of: previousMonth)
-        let lastDay = calendar.day(containing: lastDate)
-        return .day(min(lastDay, calendar.day(containing: dateRange.upperBound)))
+      if let override = monthDayRangeProvider?(previousMonth) {
+        switch override {
+        case .noDays:
+          return .monthHeader(previousMonth)
+        case .partialRange(let dateRange):
+          let lastDate = calendar.lastDate(of: previousMonth)
+          let lastDay = calendar.day(containing: lastDate)
+          return .day(min(lastDay, calendar.day(containing: dateRange.upperBound)))
+        case .fullMonth:
+          break
+        }
       }
       let lastDateOfPreviousMonth = calendar.lastDate(of: previousMonth)
       return .day(calendar.day(containing: lastDateOfPreviousMonth))

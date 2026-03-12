@@ -326,6 +326,7 @@ final class VisibleItemsProvider {
   ]()
   private var previousHeightsForVisibleMonthHeaders: [Month: CGFloat]?
   private var previousCalendarItemModelCache: [VisibleItem.ItemType: AnyCalendarItemModel]?
+  private var monthDayRangeOverrideCache = [Month: CalendarViewContent.MonthDayRangeOverride?]()
 
   private var calendar: Calendar {
     content.calendar
@@ -865,8 +866,19 @@ final class VisibleItemsProvider {
     }
   }
 
+  private func monthDayRangeOverride(
+    for month: Month
+  ) -> CalendarViewContent.MonthDayRangeOverride? {
+    if let cached = monthDayRangeOverrideCache[month] {
+      return cached
+    }
+    let result = content.monthDayRangeProvider?(month)
+    monthDayRangeOverrideCache[month] = result
+    return result
+  }
+
   private func isDayHiddenByMonthOverride(_ day: Day) -> Bool {
-    guard let override = content.monthDayRangeProvider?(day.month) else { return false }
+    guard let override = monthDayRangeOverride(for: day.month) else { return false }
     switch override {
     case .fullMonth:
       return false
@@ -1077,7 +1089,7 @@ final class VisibleItemsProvider {
       let framesForDays: [Day: CGRect]
       if let existingFrames = context.framesForDaysForVisibleMonths[month] {
         framesForDays = existingFrames
-      } else if case .noDays = content.monthDayRangeProvider?(month) {
+      } else if case .noDays = monthDayRangeOverride(for: month) {
         framesForDays = [:]
       } else {
         continue

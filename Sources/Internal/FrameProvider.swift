@@ -403,7 +403,7 @@ final class FrameProvider {
   }
 
   /// Gets the row of a date in a particular month, taking into account whether the date is in a
-  /// boundary month that's only showing some dates.
+  /// month that's only showing some dates.
   private func adjustedRowInMonth(for day: Day) -> Int {
     guard day >= content.dayRange.lowerBound else {
       preconditionFailure("""
@@ -417,6 +417,10 @@ final class FrameProvider {
       let firstDate = calendar.firstDate(of: day.month)
       let firstDay = calendar.day(containing: firstDate)
       let rangeFirstDay = max(calendar.day(containing: dateRange.lowerBound), firstDay)
+      let lastDate = calendar.lastDate(of: day.month)
+      let lastDay = calendar.day(containing: lastDate)
+      let rangeLastDay = min(calendar.day(containing: dateRange.upperBound), lastDay)
+      guard rangeFirstDay <= rangeLastDay else { return 0 }
       missingRows = calendar.rowInMonth(for: calendar.startDate(of: rangeFirstDay))
     } else if
       !content.monthsLayout.alwaysShowCompleteBoundaryMonths,
@@ -431,8 +435,7 @@ final class FrameProvider {
     return rowInMonth - missingRows
   }
 
-  /// Gets the number of week rows in a particular month, taking into account whether the month is a
-  /// boundary month that's only showing a subset of days.
+  /// Gets the number of week rows in a particular month, taking into account whether the month is only showing a subset of days.
   private func numberOfWeekRows(in month: Month) -> Int {
     if let override = content.monthDayRangeProvider?(month) {
       switch override {
@@ -447,6 +450,7 @@ final class FrameProvider {
         let lastDay = calendar.day(containing: lastDate)
         let rangeFirstDay = max(calendar.day(containing: dateRange.lowerBound), firstDay)
         let rangeLastDay = min(calendar.day(containing: dateRange.upperBound), lastDay)
+        guard rangeFirstDay <= rangeLastDay else { return 0 }
         let firstRow = calendar.rowInMonth(for: calendar.startDate(of: rangeFirstDay))
         let lastRow = calendar.rowInMonth(for: calendar.startDate(of: rangeLastDay))
         return lastRow - firstRow + 1

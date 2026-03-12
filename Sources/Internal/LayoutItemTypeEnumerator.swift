@@ -91,6 +91,11 @@ final class LayoutItemTypeEnumerator {
       if case .noDays = monthDayRangeProvider?(previousMonth) {
         return .monthHeader(previousMonth)
       }
+      if case .partialRange(let dateRange) = monthDayRangeProvider?(previousMonth) {
+        let lastDate = calendar.lastDate(of: previousMonth)
+        let lastDay = calendar.day(containing: lastDate)
+        return .day(min(lastDay, calendar.day(containing: dateRange.upperBound)))
+      }
       let lastDateOfPreviousMonth = calendar.lastDate(of: previousMonth)
       return .day(calendar.day(containing: lastDateOfPreviousMonth))
 

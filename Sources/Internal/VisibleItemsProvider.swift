@@ -727,7 +727,7 @@ final class VisibleItemsProvider {
       determineContentBoundariesIfNeeded(for: month, withFrame: monthFrame, context: &context)
 
       if case .day(let day) = layoutItem.itemType {
-        guard !isDayHiddenByMonthDayRange(day) else { return }
+        guard !content.isDayHiddenByMonthDayRange(day) else { return }
 
         var framesForDaysInMonth = context.framesForDaysForVisibleMonths[month] ?? [:]
         framesForDaysInMonth[day] = layoutItem.frame
@@ -864,10 +864,6 @@ final class VisibleItemsProvider {
     }
   }
 
-  private func isDayHiddenByMonthDayRange(_ day: Day) -> Bool {
-    guard let monthDayRange = content.monthDayRange(for: day.month) else { return false }
-    return !monthDayRange.isDayVisible(day, calendar: calendar)
-  }
 
   private func determineContentBoundariesIfNeeded(
     for month: Month,

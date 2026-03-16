@@ -422,6 +422,15 @@ public final class CalendarViewContent {
     overlayItemProvider: (OverlayLayoutContext) -> AnyCalendarItemModel
   )?
 
+  /// Whether `day` is hidden by the `monthDayRangeProvider`.
+  ///
+  /// Returns `false` when no provider is set or the provider returns `nil`
+  /// for the day's month (i.e. the full month is visible).
+  func isDayHiddenByMonthDayRange(_ day: Day) -> Bool {
+    guard let monthDayRange = monthDayRange(for: day.month) else { return false }
+    return !monthDayRange.isDayVisible(day, calendar: calendar)
+  }
+
   /// Returns the cached `MonthDayRange` for the given month, invoking
   /// `monthDayRangeProvider` at most once per month.
   func monthDayRange(for month: Month) -> MonthDayRange? {

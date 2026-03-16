@@ -375,9 +375,7 @@ public final class CalendarView: UIView {
       return
     }
 
-    if let monthDayRange = content.monthDayRange(for: day.month),
-       !monthDayRange.isDayVisible(day, calendar: calendar)
-    {
+    if content.isDayHiddenByMonthDayRange(day) {
       scroll(toMonthContaining: dateInTargetDay, scrollPosition: scrollPosition, animated: animated)
       return
     }

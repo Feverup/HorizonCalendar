@@ -38,7 +38,7 @@ final class VisibleItemsProvider {
       monthsLayout: content.monthsLayout,
       monthRange: content.monthRange,
       dayRange: content.dayRange,
-      monthlyDayRange: { [content] month in content.monthlyDayRange(for: month) }
+      monthDayRange: { [content] month in content.monthDayRange(for: month) }
     )
 
     frameProvider = FrameProvider(
@@ -727,7 +727,7 @@ final class VisibleItemsProvider {
       determineContentBoundariesIfNeeded(for: month, withFrame: monthFrame, context: &context)
 
       if case .day(let day) = layoutItem.itemType {
-        guard !isDayHiddenByMonthlyDayRange(day) else { return }
+        guard !isDayHiddenByMonthDayRange(day) else { return }
 
         var framesForDaysInMonth = context.framesForDaysForVisibleMonths[month] ?? [:]
         framesForDaysInMonth[day] = layoutItem.frame
@@ -864,9 +864,9 @@ final class VisibleItemsProvider {
     }
   }
 
-  private func isDayHiddenByMonthlyDayRange(_ day: Day) -> Bool {
-    guard let monthlyDayRange = content.monthlyDayRange(for: day.month) else { return false }
-    return !monthlyDayRange.isDayVisible(day, calendar: calendar)
+  private func isDayHiddenByMonthDayRange(_ day: Day) -> Bool {
+    guard let monthDayRange = content.monthDayRange(for: day.month) else { return false }
+    return !monthDayRange.isDayVisible(day, calendar: calendar)
   }
 
   private func determineContentBoundariesIfNeeded(
@@ -1067,8 +1067,8 @@ final class VisibleItemsProvider {
       let framesForDays: [Day: CGRect]
       if let existingFrames = context.framesForDaysForVisibleMonths[month] {
         framesForDays = existingFrames
-      } else if let monthlyDayRange = content.monthlyDayRange(for: month),
-                !monthlyDayRange.hasVisibleDays(in: month, calendar: calendar) {
+      } else if let monthDayRange = content.monthDayRange(for: month),
+                !monthDayRange.hasVisibleDays(in: month, calendar: calendar) {
         framesForDays = [:]
       } else {
         continue

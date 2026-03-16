@@ -1589,7 +1589,7 @@ final class VisibleItemsProviderTests: XCTestCase {
   func testVerticalVisibleItemsWithNoDaysMonth() {
     let june2020 = Month(era: 1, year: 2020, month: 06, isInGregorianCalendar: true)
 
-    let details = verticalMonthlyDayRangeVisibleItemsProvider.detailsForVisibleItems(
+    let details = verticalMonthDayRangeVisibleItemsProvider.detailsForVisibleItems(
       surroundingPreviouslyVisibleLayoutItem: LayoutItem(
         itemType: .monthHeader(june2020),
         frame: CGRect(x: 0, y: 200, width: 320, height: 50)
@@ -1616,7 +1616,7 @@ final class VisibleItemsProviderTests: XCTestCase {
   func testVerticalVisibleItemsWithNonOverlappingPartialRangeMonth() {
     let august2020 = Month(era: 1, year: 2020, month: 08, isInGregorianCalendar: true)
 
-    let details = verticalMonthlyDayRangeVisibleItemsProvider.detailsForVisibleItems(
+    let details = verticalMonthDayRangeVisibleItemsProvider.detailsForVisibleItems(
       surroundingPreviouslyVisibleLayoutItem: LayoutItem(
         itemType: .monthHeader(august2020),
         frame: CGRect(x: 0, y: 200, width: 320, height: 50)
@@ -1643,7 +1643,7 @@ final class VisibleItemsProviderTests: XCTestCase {
   func testVerticalVisibleItemsWithPartialRangeMonth() {
     let july2020 = Month(era: 1, year: 2020, month: 07, isInGregorianCalendar: true)
 
-    let details = verticalMonthlyDayRangeVisibleItemsProvider.detailsForVisibleItems(
+    let details = verticalMonthDayRangeVisibleItemsProvider.detailsForVisibleItems(
       surroundingPreviouslyVisibleLayoutItem: LayoutItem(
         itemType: .monthHeader(july2020),
         frame: CGRect(x: 0, y: 200, width: 320, height: 50)
@@ -1776,7 +1776,7 @@ final class VisibleItemsProviderTests: XCTestCase {
     backgroundColor: nil
   )
 
-  private var verticalMonthlyDayRangeVisibleItemsProvider: VisibleItemsProvider = {
+  private var verticalMonthDayRangeVisibleItemsProvider: VisibleItemsProvider = {
     let june2020 = Month(era: 1, year: 2020, month: 06, isInGregorianCalendar: true)
     let july2020 = Month(era: 1, year: 2020, month: 07, isInGregorianCalendar: true)
     let august2020 = Month(era: 1, year: 2020, month: 08, isInGregorianCalendar: true)
@@ -1789,7 +1789,7 @@ final class VisibleItemsProviderTests: XCTestCase {
           monthsLayout: .vertical(options: VerticalMonthsLayoutOptions())
         )
       )
-      .monthlyDayRangeProvider { month in
+      .monthDayRangeProvider { month in
         if month == june2020 {
           return .noDays
         } else if month == july2020 {

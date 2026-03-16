@@ -313,20 +313,20 @@ public final class CalendarViewContent {
 
   /// Configures the per-month day range provider.
   ///
-  /// `CalendarView` invokes the provided `monthlyDayRangeProvider` for each month in the visible range.
+  /// `CalendarView` invokes the provided `monthDayRangeProvider` for each month in the visible range.
   /// Results are cached per-month so the closure is called at most once per month per content instance.
   ///
   /// Return `.noDays` to hide all days (only the month header is shown), `.partialRange` to show a subset of days,
   /// `.fullMonth` to keep default behavior, or `nil` to keep default behavior.
   ///
   /// - Parameters:
-  ///   - monthlyDayRangeProvider: A closure (that is retained) that returns a `MonthlyDayRange` for
+  ///   - monthDayRangeProvider: A closure (that is retained) that returns a `MonthDayRange` for
   ///   the given month, or `nil` to use default behavior.
   /// - Returns: A mutated `CalendarViewContent` instance with a new month day range provider.
-  public func monthlyDayRangeProvider(
-    _ monthlyDayRangeProvider: @escaping (_ month: MonthComponents) -> MonthlyDayRange?
+  public func monthDayRangeProvider(
+    _ monthDayRangeProvider: @escaping (_ month: MonthComponents) -> MonthDayRange?
   ) -> CalendarViewContent {
-    self.monthlyDayRangeProvider = monthlyDayRangeProvider
+    self.monthDayRangeProvider = monthDayRangeProvider
     return self
   }
 
@@ -412,7 +412,7 @@ public final class CalendarViewContent {
   private(set) var dayItemProvider: (Day) -> AnyCalendarItemModel
   private(set) var dayBackgroundItemProvider: ((Day) -> AnyCalendarItemModel?)?
   private(set) var monthBackgroundItemProvider: ((MonthLayoutContext) -> AnyCalendarItemModel?)?
-  private(set) var monthlyDayRangeProvider: ((Month) -> MonthlyDayRange?)?
+  private(set) var monthDayRangeProvider: ((Month) -> MonthDayRange?)?
   private(set) var dayRangesAndItemProvider: (
     dayRanges: Set<DayRange>,
     dayRangeItemProvider: (DayRangeLayoutContext) -> AnyCalendarItemModel
@@ -422,20 +422,20 @@ public final class CalendarViewContent {
     overlayItemProvider: (OverlayLayoutContext) -> AnyCalendarItemModel
   )?
 
-  /// Returns the cached `MonthlyDayRange` for the given month, invoking
-  /// `monthlyDayRangeProvider` at most once per month.
-  func monthlyDayRange(for month: Month) -> MonthlyDayRange? {
-    if let cached = monthlyDayRangeCache[month] {
+  /// Returns the cached `MonthDayRange` for the given month, invoking
+  /// `monthDayRangeProvider` at most once per month.
+  func monthDayRange(for month: Month) -> MonthDayRange? {
+    if let cached = monthDayRangeCache[month] {
       return cached
     }
-    let result = monthlyDayRangeProvider?(month)
-    monthlyDayRangeCache[month] = result
+    let result = monthDayRangeProvider?(month)
+    monthDayRangeCache[month] = result
     return result
   }
 
   // MARK: Private
 
-  private var monthlyDayRangeCache: [Month: MonthlyDayRange?] = [:]
+  private var monthDayRangeCache: [Month: MonthDayRange?] = [:]
 
   /// The default `monthHeaderItemProvider` if no provider has been configured,
   /// or if the existing provider returns nil.
@@ -502,7 +502,7 @@ public final class CalendarViewContent {
 
 }
 
-// MARK: CalendarViewContent.MonthlyDayRange
+// MARK: CalendarViewContent.MonthDayRange
 
 extension CalendarViewContent {
 
@@ -511,7 +511,7 @@ extension CalendarViewContent {
   /// - `fullMonth`: Show all days (default behavior).
   /// - `noDays`: Hide all days and day-of-week items; only the month header is rendered.
   /// - `partialRange`: Show only the days within the specified closed range.
-  public enum MonthlyDayRange {
+  public enum MonthDayRange {
     case fullMonth
     case noDays
     case partialRange(ClosedRange<Date>)
@@ -519,7 +519,7 @@ extension CalendarViewContent {
 
 }
 
-extension CalendarViewContent.MonthlyDayRange {
+extension CalendarViewContent.MonthDayRange {
 
   /// Returns the day range for a `.partialRange` clamped to the given month's bounds,
   /// or `nil` for `.fullMonth`, `.noDays`, or when the range doesn't overlap the month.

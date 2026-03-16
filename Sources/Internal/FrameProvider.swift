@@ -413,8 +413,8 @@ final class FrameProvider {
     }
 
     let missingRows: Int
-    if let monthlyDayRange = content.monthlyDayRange(for: day.month), case .partialRange = monthlyDayRange {
-      guard let range = monthlyDayRange.partialDayRange(in: day.month, calendar: calendar) else {
+    if let monthDayRange = content.monthDayRange(for: day.month), case .partialRange = monthDayRange {
+      guard let range = monthDayRange.partialDayRange(in: day.month, calendar: calendar) else {
         return 0
       }
       var rows = calendar.rowInMonth(for: calendar.startDate(of: range.lowerBound))
@@ -442,14 +442,14 @@ final class FrameProvider {
 
   /// Gets the number of week rows in a particular month, taking into account whether the month is only showing a subset of days.
   private func numberOfWeekRows(in month: Month) -> Int {
-    if let monthlyDayRange = content.monthlyDayRange(for: month) {
-      switch monthlyDayRange {
+    if let monthDayRange = content.monthDayRange(for: month) {
+      switch monthDayRange {
       case .fullMonth:
         break
       case .noDays:
         return 0
       case .partialRange:
-        guard let range = monthlyDayRange.partialDayRange(in: month, calendar: calendar) else {
+        guard let range = monthDayRange.partialDayRange(in: month, calendar: calendar) else {
           return 0
         }
         let firstRow = calendar.rowInMonth(for: calendar.startDate(of: range.lowerBound))

@@ -1613,6 +1613,33 @@ final class VisibleItemsProviderTests: XCTestCase {
     XCTAssert(hasJuneBackground, "June month background should still be visible for .noDays month")
   }
 
+  func testVerticalVisibleItemsWithNonOverlappingPartialRangeMonth() {
+    let august2020 = Month(era: 1, year: 2020, month: 08, isInGregorianCalendar: true)
+
+    let details = verticalMonthlyDayRangeVisibleItemsProvider.detailsForVisibleItems(
+      surroundingPreviouslyVisibleLayoutItem: LayoutItem(
+        itemType: .monthHeader(august2020),
+        frame: CGRect(x: 0, y: 200, width: 320, height: 50)
+      ),
+      offset: CGPoint(x: 0, y: 150),
+      extendLayoutRegion: false
+    )
+
+    let visibleDescriptions = Set(details.visibleItems.map { $0.description })
+
+    let hasDayInAugust = visibleDescriptions.contains { $0.contains(".day(2020-08-") }
+    XCTAssertFalse(hasDayInAugust, "No August day items should be visible for a non-overlapping partialRange month")
+
+    let hasDayOfWeekInAugust = visibleDescriptions.contains { $0.contains("dayOfWeekInMonth") && $0.contains("2020-08") }
+    XCTAssertFalse(hasDayOfWeekInAugust, "No August dayOfWeek items should be visible for a non-overlapping partialRange month")
+
+    let hasAugustHeader = visibleDescriptions.contains { $0.contains(".monthHeader(2020-08)") }
+    XCTAssert(hasAugustHeader, "August month header should still be visible")
+
+    let hasAugustBackground = visibleDescriptions.contains { $0.contains(".monthBackground(2020-08)") }
+    XCTAssert(hasAugustBackground, "August month background should still be visible for non-overlapping partialRange month")
+  }
+
   func testVerticalVisibleItemsWithPartialRangeMonth() {
     let july2020 = Month(era: 1, year: 2020, month: 07, isInGregorianCalendar: true)
 
@@ -1752,6 +1779,7 @@ final class VisibleItemsProviderTests: XCTestCase {
   private var verticalMonthlyDayRangeVisibleItemsProvider: VisibleItemsProvider = {
     let june2020 = Month(era: 1, year: 2020, month: 06, isInGregorianCalendar: true)
     let july2020 = Month(era: 1, year: 2020, month: 07, isInGregorianCalendar: true)
+    let august2020 = Month(era: 1, year: 2020, month: 08, isInGregorianCalendar: true)
     return VisibleItemsProvider(
       calendar: calendar,
       content: makeContent(
@@ -1768,6 +1796,10 @@ final class VisibleItemsProviderTests: XCTestCase {
           let lowerDate = calendar.date(from: DateComponents(year: 2020, month: 07, day: 10))!
           let upperDate = calendar.date(from: DateComponents(year: 2020, month: 07, day: 20))!
           return .partialRange(lowerDate...upperDate)
+        } else if month == august2020 {
+          let nonOverlappingLower = calendar.date(from: DateComponents(year: 2021, month: 06, day: 1))!
+          let nonOverlappingUpper = calendar.date(from: DateComponents(year: 2021, month: 06, day: 15))!
+          return .partialRange(nonOverlappingLower...nonOverlappingUpper)
         }
         return nil
       },

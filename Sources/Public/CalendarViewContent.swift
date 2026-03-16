@@ -536,6 +536,19 @@ extension CalendarViewContent.MonthlyDayRange {
     return lower...upper
   }
 
+  /// Whether this day range produces any visible days in the given month.
+  /// Returns `false` for `.noDays` and for `.partialRange` when the range doesn't overlap the month.
+  func hasVisibleDays(in month: Month, calendar: Calendar) -> Bool {
+    switch self {
+    case .fullMonth:
+      return true
+    case .noDays:
+      return false
+    case .partialRange:
+      return partialDayRange(in: month, calendar: calendar) != nil
+    }
+  }
+
   /// Whether `day` should be visible under this day range, clamped to the day's month bounds.
   func isDayVisible(_ day: Day, calendar: Calendar) -> Bool {
     switch self {

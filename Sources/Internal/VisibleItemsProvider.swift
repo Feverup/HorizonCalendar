@@ -1067,7 +1067,8 @@ final class VisibleItemsProvider {
       let framesForDays: [Day: CGRect]
       if let existingFrames = context.framesForDaysForVisibleMonths[month] {
         framesForDays = existingFrames
-      } else if case .noDays = content.monthlyDayRange(for: month) {
+      } else if let monthlyDayRange = content.monthlyDayRange(for: month),
+                !monthlyDayRange.hasVisibleDays(in: month, calendar: calendar) {
         framesForDays = [:]
       } else {
         continue

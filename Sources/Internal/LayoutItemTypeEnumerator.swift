@@ -77,7 +77,10 @@ final class LayoutItemTypeEnumerator {
     case .monthHeader(let month):
       return monthRange.contains(month)
     case .dayOfWeekInMonth(_, let month):
-      if case .noDays = monthlyDayRange?(month) { return false }
+      if let monthlyDayRange = monthlyDayRange?(month),
+         !monthlyDayRange.hasVisibleDays(in: month, calendar: calendar) {
+        return false
+      }
       return monthRange.contains(month)
     case .day(let day):
       guard dayRange.contains(day) else { return false }
@@ -143,7 +146,8 @@ final class LayoutItemTypeEnumerator {
   private func nextItemType(from itemType: LayoutItem.ItemType) -> LayoutItem.ItemType {
     switch itemType {
     case .monthHeader(let month):
-      if case .noDays = monthlyDayRange?(month) {
+      if let monthlyDayRange = monthlyDayRange?(month),
+         !monthlyDayRange.hasVisibleDays(in: month, calendar: calendar) {
         let nextMonth = calendar.month(byAddingMonths: 1, to: month)
         return .monthHeader(nextMonth)
       }
@@ -187,8 +191,9 @@ final class LayoutItemTypeEnumerator {
     let firstDate = calendar.firstDate(of: month)
     let firstDay = calendar.day(containing: firstDate)
 
-    if case .partialRange(let dateRange) = monthlyDayRange?(month) {
-      var result = max(firstDay, calendar.day(containing: dateRange.lowerBound))
+    if let monthlyDayRange = monthlyDayRange?(month),
+       let clampedRange = monthlyDayRange.partialDayRange(in: month, calendar: calendar) {
+      var result = clampedRange.lowerBound
       if month == dayRange.lowerBound.month {
         result = max(result, dayRange.lowerBound)
       }

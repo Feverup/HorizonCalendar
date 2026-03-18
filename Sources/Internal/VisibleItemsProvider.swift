@@ -37,7 +37,8 @@ final class VisibleItemsProvider {
       calendar: calendar,
       monthsLayout: content.monthsLayout,
       monthRange: content.monthRange,
-      dayRange: content.dayRange
+      dayRange: content.dayRange,
+      monthDayRange: { [content] month in content.monthDayRange(for: month) }
     )
 
     frameProvider = FrameProvider(
@@ -325,7 +326,6 @@ final class VisibleItemsProvider {
   ]()
   private var previousHeightsForVisibleMonthHeaders: [Month: CGFloat]?
   private var previousCalendarItemModelCache: [VisibleItem.ItemType: AnyCalendarItemModel]?
-
   private var calendar: Calendar {
     content.calendar
   }
@@ -727,6 +727,8 @@ final class VisibleItemsProvider {
       determineContentBoundariesIfNeeded(for: month, withFrame: monthFrame, context: &context)
 
       if case .day(let day) = layoutItem.itemType {
+        guard !content.isDayHiddenByMonthDayRange(day) else { return }
+
         var framesForDaysInMonth = context.framesForDaysForVisibleMonths[month] ?? [:]
         framesForDaysInMonth[day] = layoutItem.frame
         context.framesForDaysForVisibleMonths[month] = framesForDaysInMonth
@@ -861,6 +863,7 @@ final class VisibleItemsProvider {
       shouldStop = true
     }
   }
+
 
   private func determineContentBoundariesIfNeeded(
     for month: Month,
@@ -1057,7 +1060,15 @@ final class VisibleItemsProvider {
     guard let monthBackgroundItemProvider = content.monthBackgroundItemProvider else { return }
 
     for (month, monthFrame) in context.framesForVisibleMonths {
-      guard let framesForDays = context.framesForDaysForVisibleMonths[month] else { continue }
+      let framesForDays: [Day: CGRect]
+      if let existingFrames = context.framesForDaysForVisibleMonths[month] {
+        framesForDays = existingFrames
+      } else if let monthDayRange = content.monthDayRange(for: month),
+                !monthDayRange.hasVisibleDays(in: month, calendar: calendar) {
+        framesForDays = [:]
+      } else {
+        continue
+      }
 
       // We need to expand the frame of the month so that we have enough room at the edges to draw
       // the background without getting clipped.

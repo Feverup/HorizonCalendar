@@ -108,6 +108,7 @@ public struct CalendarViewRepresentable: UIViewRepresentable {
   fileprivate var dayItemProvider: ((Day) -> AnyCalendarItemModel?)?
   fileprivate var dayBackgroundItemProvider: ((Day) -> AnyCalendarItemModel?)?
   fileprivate var monthBackgroundItemProvider: ((MonthLayoutContext) -> AnyCalendarItemModel?)?
+  fileprivate var monthDayRangeProvider: ((MonthComponents) -> CalendarViewContent.MonthDayRange?)?
   fileprivate var dateRangesAndItemProvider: (
     dayRanges: Set<ClosedRange<Date>>,
     dayRangeItemProvider: (DayRangeLayoutContext) -> AnyCalendarItemModel
@@ -182,6 +183,10 @@ public struct CalendarViewRepresentable: UIViewRepresentable {
 
     if let monthBackgroundItemProvider {
       content = content.monthBackgroundItemProvider(monthBackgroundItemProvider)
+    }
+
+    if let monthDayRangeProvider {
+      content = content.monthDayRangeProvider(monthDayRangeProvider)
     }
 
     if let (dateRanges, itemProvider) = dateRangesAndItemProvider {
@@ -548,6 +553,26 @@ extension CalendarViewRepresentable {
         return view.calendarItemModel
       }
     }
+  }
+
+  /// Configures the per-month day range provider.
+  ///
+  /// `CalendarView` invokes the provided `monthDayRangeProvider` for each month in the visible range.
+  /// Results are cached per-month so the closure is called at most once per month per content instance.
+  ///
+  /// Return `.noDays` to hide all days (only the month header is shown), `.partialRange` to show a subset of days,
+  /// `.fullMonth` to keep default behavior, or `nil` to keep default behavior.
+  ///
+  /// - Parameters:
+  ///   - monthDayRangeProvider: A closure (that is retained) that returns a `MonthDayRange` for the given month, or
+  ///   `nil` to use default behavior.
+  /// - Returns: A new `CalendarViewRepresentable` with a new month day range provider.
+  public func monthDayRangeProvider(
+    _ monthDayRangeProvider: @escaping (_ month: MonthComponents) -> CalendarViewContent.MonthDayRange?
+  ) -> Self {
+    var view = self
+    view.monthDayRangeProvider = monthDayRangeProvider
+    return view
   }
 
   /// Configures the day range item provider. Consider using the `dayRanges(for:_:)` modifier instead if your custom day range

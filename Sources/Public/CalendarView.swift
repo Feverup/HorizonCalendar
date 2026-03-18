@@ -375,6 +375,11 @@ public final class CalendarView: UIView {
       return
     }
 
+    if content.isDayHiddenByMonthDayRange(day) {
+      scroll(toMonthContaining: dateInTargetDay, scrollPosition: scrollPosition, animated: animated)
+      return
+    }
+
     // Cancel in-flight scroll
     scrollView.setContentOffset(scrollView.contentOffset, animated: false)
 
@@ -395,6 +400,12 @@ public final class CalendarView: UIView {
   // MARK: Internal
 
   lazy var doubleLayoutPassSizingLabel = DoubleLayoutPassSizingLabel(provider: self)
+    
+  var scrollToItemContext: ScrollToItemContext? {
+    willSet {
+      scrollToItemDisplayLink?.invalidate()
+    }
+  }
 
   // MARK: Fileprivate
 
@@ -430,12 +441,6 @@ public final class CalendarView: UIView {
     gestureRecognizer.delegate = gestureRecognizerDelegate
     return gestureRecognizer
   }()
-
-  fileprivate var scrollToItemContext: ScrollToItemContext? {
-    willSet {
-      scrollToItemDisplayLink?.invalidate()
-    }
-  }
 
   fileprivate var calendar: Calendar {
     content.calendar

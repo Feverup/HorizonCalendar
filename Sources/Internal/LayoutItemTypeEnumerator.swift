@@ -24,11 +24,18 @@ final class LayoutItemTypeEnumerator {
 
   // MARK: Lifecycle
 
-  init(calendar: Calendar, monthsLayout: MonthsLayout, monthRange: MonthRange, dayRange: DayRange) {
+  init(
+    calendar: Calendar,
+    monthsLayout: MonthsLayout,
+    monthRange: MonthRange,
+    dayRange: DayRange,
+    monthDayRange: ((Month) -> CalendarViewContent.MonthDayRange?)? = nil
+  ) {
     self.calendar = calendar
     self.monthsLayout = monthsLayout
     self.monthRange = monthRange
     self.dayRange = dayRange
+    self.monthDayRange = monthDayRange
   }
 
   // MARK: Internal
@@ -63,15 +70,22 @@ final class LayoutItemTypeEnumerator {
   private let monthsLayout: MonthsLayout
   private let monthRange: MonthRange
   private let dayRange: DayRange
+  private let monthDayRange: ((Month) -> CalendarViewContent.MonthDayRange?)?
 
   private func isItemTypeInRange(_ itemType: LayoutItem.ItemType) -> Bool {
     switch itemType {
     case .monthHeader(let month):
       return monthRange.contains(month)
     case .dayOfWeekInMonth(_, let month):
+      if let monthDayRange = monthDayRange?(month),
+         !monthDayRange.hasVisibleDays(in: month, calendar: calendar) {
+        return false
+      }
       return monthRange.contains(month)
     case .day(let day):
-      return dayRange.contains(day)
+      guard dayRange.contains(day) else { return false }
+      guard let monthDayRange = monthDayRange?(day.month) else { return true}
+      return monthDayRange.isDayVisible(day, calendar: calendar)
     }
   }
 
@@ -79,6 +93,19 @@ final class LayoutItemTypeEnumerator {
     switch itemType {
     case .monthHeader(let month):
       let previousMonth = calendar.month(byAddingMonths: -1, to: month)
+      if let monthDayRange = monthDayRange?(previousMonth) {
+        switch monthDayRange {
+        case .noDays:
+          return .monthHeader(previousMonth)
+        case .partialRange:
+          if let clampedRange = monthDayRange.partialDayRange(in: previousMonth, calendar: calendar) {
+            return .day(clampedRange.upperBound)
+          }
+          return .monthHeader(previousMonth)
+        case .fullMonth:
+          break
+        }
+      }
       let lastDateOfPreviousMonth = calendar.lastDate(of: previousMonth)
       return .day(calendar.day(containing: lastDateOfPreviousMonth))
 
@@ -93,7 +120,18 @@ final class LayoutItemTypeEnumerator {
       }
 
     case .day(let day):
-      if day.day == 1 || day == dayRange.lowerBound {
+      let isFirstDayOfMonth = day.day == 1 || day == dayRange.lowerBound
+      let isFirstDayOfPartialRange: Bool
+      if
+        let monthDayRange = monthDayRange?(day.month),
+        let clampedRange = monthDayRange.partialDayRange(in: day.month, calendar: calendar)
+      {
+        isFirstDayOfPartialRange = day <= clampedRange.lowerBound
+      } else {
+        isFirstDayOfPartialRange = false
+      }
+
+      if isFirstDayOfMonth || isFirstDayOfPartialRange {
         if case .vertical(let options) = monthsLayout, options.pinDaysOfWeekToTop {
           return .monthHeader(day.month)
         } else {
@@ -108,6 +146,11 @@ final class LayoutItemTypeEnumerator {
   private func nextItemType(from itemType: LayoutItem.ItemType) -> LayoutItem.ItemType {
     switch itemType {
     case .monthHeader(let month):
+      if let monthDayRange = monthDayRange?(month),
+         !monthDayRange.hasVisibleDays(in: month, calendar: calendar) {
+        let nextMonth = calendar.month(byAddingMonths: 1, to: month)
+        return .monthHeader(nextMonth)
+      }
       if case .vertical(let options) = monthsLayout, options.pinDaysOfWeekToTop {
         return .day(firstDayInRange(in: month))
       } else {
@@ -131,6 +174,13 @@ final class LayoutItemTypeEnumerator {
       } else if day == dayRange.upperBound {
         let nextMonth = calendar.month(byAddingMonths: 1, to: nextDay.month)
         return .monthHeader(nextMonth)
+      } else if
+        let monthDayRange = monthDayRange?(day.month),
+        let clampedRange = monthDayRange.partialDayRange(in: day.month, calendar: calendar),
+        day >= clampedRange.upperBound
+      {
+        let nextMonth = calendar.month(byAddingMonths: 1, to: day.month)
+        return .monthHeader(nextMonth)
       } else {
         return .day(nextDay)
       }
@@ -140,6 +190,15 @@ final class LayoutItemTypeEnumerator {
   private func firstDayInRange(in month: Month) -> Day {
     let firstDate = calendar.firstDate(of: month)
     let firstDay = calendar.day(containing: firstDate)
+
+    if let monthDayRange = monthDayRange?(month),
+       let clampedRange = monthDayRange.partialDayRange(in: month, calendar: calendar) {
+      var result = clampedRange.lowerBound
+      if month == dayRange.lowerBound.month {
+        result = max(result, dayRange.lowerBound)
+      }
+      return result
+    }
 
     if month == dayRange.lowerBound.month {
       return max(firstDay, dayRange.lowerBound)

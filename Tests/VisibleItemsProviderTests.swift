@@ -1586,6 +1586,95 @@ final class VisibleItemsProviderTests: XCTestCase {
     )
   }
 
+  func testVerticalVisibleItemsWithNoDaysMonth() {
+    let june2020 = Month(era: 1, year: 2020, month: 06, isInGregorianCalendar: true)
+
+    let details = verticalMonthDayRangeVisibleItemsProvider.detailsForVisibleItems(
+      surroundingPreviouslyVisibleLayoutItem: LayoutItem(
+        itemType: .monthHeader(june2020),
+        frame: CGRect(x: 0, y: 200, width: 320, height: 50)
+      ),
+      offset: CGPoint(x: 0, y: 150),
+      extendLayoutRegion: false
+    )
+
+    let visibleDescriptions = Set(details.visibleItems.map { $0.description })
+
+    let hasDayInJune = visibleDescriptions.contains { $0.contains(".day(2020-06-") }
+    XCTAssertFalse(hasDayInJune, "No June day items should be visible for a .noDays month")
+
+    let hasDayOfWeekInJune = visibleDescriptions.contains { $0.contains("dayOfWeekInMonth") && $0.contains("2020-06") }
+    XCTAssertFalse(hasDayOfWeekInJune, "No June dayOfWeek items should be visible for a .noDays month")
+
+    let hasJuneHeader = visibleDescriptions.contains { $0.contains(".monthHeader(2020-06)") }
+    XCTAssert(hasJuneHeader, "June month header should still be visible")
+
+    let hasJuneBackground = visibleDescriptions.contains { $0.contains(".monthBackground(2020-06)") }
+    XCTAssert(hasJuneBackground, "June month background should still be visible for .noDays month")
+  }
+
+  func testVerticalVisibleItemsWithNonOverlappingPartialRangeMonth() {
+    let august2020 = Month(era: 1, year: 2020, month: 08, isInGregorianCalendar: true)
+
+    let details = verticalMonthDayRangeVisibleItemsProvider.detailsForVisibleItems(
+      surroundingPreviouslyVisibleLayoutItem: LayoutItem(
+        itemType: .monthHeader(august2020),
+        frame: CGRect(x: 0, y: 200, width: 320, height: 50)
+      ),
+      offset: CGPoint(x: 0, y: 150),
+      extendLayoutRegion: false
+    )
+
+    let visibleDescriptions = Set(details.visibleItems.map { $0.description })
+
+    let hasDayInAugust = visibleDescriptions.contains { $0.contains(".day(2020-08-") }
+    XCTAssertFalse(hasDayInAugust, "No August day items should be visible for a non-overlapping partialRange month")
+
+    let hasDayOfWeekInAugust = visibleDescriptions.contains { $0.contains("dayOfWeekInMonth") && $0.contains("2020-08") }
+    XCTAssertFalse(hasDayOfWeekInAugust, "No August dayOfWeek items should be visible for a non-overlapping partialRange month")
+
+    let hasAugustHeader = visibleDescriptions.contains { $0.contains(".monthHeader(2020-08)") }
+    XCTAssert(hasAugustHeader, "August month header should still be visible")
+
+    let hasAugustBackground = visibleDescriptions.contains { $0.contains(".monthBackground(2020-08)") }
+    XCTAssert(hasAugustBackground, "August month background should still be visible for non-overlapping partialRange month")
+  }
+
+  func testVerticalVisibleItemsWithPartialRangeMonth() {
+    let july2020 = Month(era: 1, year: 2020, month: 07, isInGregorianCalendar: true)
+
+    let details = verticalMonthDayRangeVisibleItemsProvider.detailsForVisibleItems(
+      surroundingPreviouslyVisibleLayoutItem: LayoutItem(
+        itemType: .monthHeader(july2020),
+        frame: CGRect(x: 0, y: 200, width: 320, height: 50)
+      ),
+      offset: CGPoint(x: 0, y: 150),
+      extendLayoutRegion: false
+    )
+
+    let visibleDescriptions = details.visibleItems.map { $0.description }
+
+    let julyDayNumbers: [Int] = visibleDescriptions.compactMap { desc in
+      guard desc.contains(".day(2020-07-") else { return nil }
+      guard let range = desc.range(of: ".day(2020-07-") else { return nil }
+      let afterPrefix = desc[range.upperBound...]
+      guard let endParen = afterPrefix.firstIndex(of: ")") else { return nil }
+      return Int(afterPrefix[..<endParen])
+    }
+
+    let sortedDays = julyDayNumbers.sorted()
+    if let firstDay = sortedDays.first, let lastDay = sortedDays.last {
+      XCTAssert(firstDay >= 10, "No July days before 10 should be visible (partial range starts at 10)")
+      XCTAssert(lastDay <= 20, "No July days after 20 should be visible (partial range ends at 20)")
+    }
+
+    let hasJulyHeader = visibleDescriptions.contains { $0.contains(".monthHeader(2020-07)") }
+    XCTAssert(hasJulyHeader, "July month header should still be visible")
+
+    let hasJulyDayOfWeek = visibleDescriptions.contains { $0.contains("dayOfWeekInMonth") && $0.contains("2020-07") }
+    XCTAssert(hasJulyDayOfWeek, "July dayOfWeek items should be visible for .partialRange month")
+  }
+
   // MARK: Private
 
   private static let calendar = Calendar(identifier: .gregorian)
@@ -1686,6 +1775,40 @@ final class VisibleItemsProviderTests: XCTestCase {
     scale: 2,
     backgroundColor: nil
   )
+
+  private var verticalMonthDayRangeVisibleItemsProvider: VisibleItemsProvider = {
+    let june2020 = Month(era: 1, year: 2020, month: 06, isInGregorianCalendar: true)
+    let july2020 = Month(era: 1, year: 2020, month: 07, isInGregorianCalendar: true)
+    let august2020 = Month(era: 1, year: 2020, month: 08, isInGregorianCalendar: true)
+    return VisibleItemsProvider(
+      calendar: calendar,
+      content: makeContent(
+        fromBaseContent: CalendarViewContent(
+          calendar: calendar,
+          visibleDateRange: dateRange,
+          monthsLayout: .vertical(options: VerticalMonthsLayoutOptions())
+        )
+      )
+      .monthDayRangeProvider { month in
+        if month == june2020 {
+          return .noDays
+        } else if month == july2020 {
+          let lowerDate = calendar.date(from: DateComponents(year: 2020, month: 07, day: 10))!
+          let upperDate = calendar.date(from: DateComponents(year: 2020, month: 07, day: 20))!
+          return .partialRange(lowerDate...upperDate)
+        } else if month == august2020 {
+          let nonOverlappingLower = calendar.date(from: DateComponents(year: 2021, month: 06, day: 1))!
+          let nonOverlappingUpper = calendar.date(from: DateComponents(year: 2021, month: 06, day: 15))!
+          return .partialRange(nonOverlappingLower...nonOverlappingUpper)
+        }
+        return nil
+      },
+      size: size,
+      layoutMargins: .zero,
+      scale: 2,
+      backgroundColor: nil
+    )
+  }()
 
   private static func mockCalendarItemModel(height: CGFloat = 50) -> AnyCalendarItemModel {
     final class MockView: UIView, CalendarItemViewRepresentable {

@@ -1143,12 +1143,12 @@ final class FrameProviderTests: XCTestCase {
     )
   }
 
-  func testFrameOfBoundaryMonthWithPartialRange() {
+  func testFrameOfBoundaryMonthWithPartialRange() throws {
     let may2020 = Month(era: 1, year: 2020, month: 05, isInGregorianCalendar: true)
     let monthHeaderHeight: CGFloat = 50
 
-    let lowerBoundDate = calendar.date(from: DateComponents(year: 2020, month: 05, day: 01))!
-    let upperBoundDate = calendar.date(from: DateComponents(year: 2020, month: 07, day: 31))!
+    let lowerBoundDate = try XCTUnwrap(calendar.date(from: DateComponents(year: 2020, month: 05, day: 01)))
+    let upperBoundDate = try XCTUnwrap(calendar.date(from: DateComponents(year: 2020, month: 07, day: 31)))
 
     let provider = FrameProvider(
       content: CalendarViewContent(

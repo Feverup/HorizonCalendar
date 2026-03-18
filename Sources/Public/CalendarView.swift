@@ -400,7 +400,7 @@ public final class CalendarView: UIView {
   // MARK: Internal
 
   lazy var doubleLayoutPassSizingLabel = DoubleLayoutPassSizingLabel(provider: self)
-    
+
   var scrollToItemContext: ScrollToItemContext? {
     willSet {
       scrollToItemDisplayLink?.invalidate()

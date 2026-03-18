@@ -326,6 +326,7 @@ final class VisibleItemsProvider {
   ]()
   private var previousHeightsForVisibleMonthHeaders: [Month: CGFloat]?
   private var previousCalendarItemModelCache: [VisibleItem.ItemType: AnyCalendarItemModel]?
+
   private var calendar: Calendar {
     content.calendar
   }
@@ -864,7 +865,6 @@ final class VisibleItemsProvider {
     }
   }
 
-
   private func determineContentBoundariesIfNeeded(
     for month: Month,
     withFrame monthFrame: CGRect,
@@ -1063,8 +1063,10 @@ final class VisibleItemsProvider {
       let framesForDays: [Day: CGRect]
       if let existingFrames = context.framesForDaysForVisibleMonths[month] {
         framesForDays = existingFrames
-      } else if let monthDayRange = content.monthDayRange(for: month),
-                !monthDayRange.hasVisibleDays(in: month, calendar: calendar) {
+      } else if
+        let monthDayRange = content.monthDayRange(for: month),
+        !monthDayRange.hasVisibleDays(in: month, calendar: calendar)
+      {
         framesForDays = [:]
       } else {
         continue

@@ -287,8 +287,8 @@ final class LayoutItemTypeEnumeratorTests: XCTestCase {
       }
     )
 
-    var forwardItems: [LayoutItem.ItemType] = []
-    var backwardItems: [LayoutItem.ItemType] = []
+    var forwardItems = [LayoutItem.ItemType]()
+    var backwardItems = [LayoutItem.ItemType]()
 
     enumerator.enumerateItemTypes(
       startingAt: .monthHeader(dec2020),
@@ -339,7 +339,7 @@ final class LayoutItemTypeEnumeratorTests: XCTestCase {
     XCTAssertEqual(backwardItems.last, .monthHeader(nov2020))
   }
 
-  func testEnumeratingVerticalItemsWithPartialRangeMonth() {
+  func testEnumeratingVerticalItemsWithPartialRangeMonth() throws {
     let dec2020 = Month(era: 1, year: 2020, month: 12, isInGregorianCalendar: true)
     let nov2020 = Month(era: 1, year: 2020, month: 11, isInGregorianCalendar: true)
     let jan2021 = Month(era: 1, year: 2021, month: 01, isInGregorianCalendar: true)
@@ -347,8 +347,8 @@ final class LayoutItemTypeEnumeratorTests: XCTestCase {
     let monthRange = nov2020...jan2021
     let dayRange = Day(month: nov2020, day: 12)...Day(month: jan2021, day: 20)
 
-    let partialLowerDate = calendar.date(from: DateComponents(year: 2020, month: 12, day: 10))!
-    let partialUpperDate = calendar.date(from: DateComponents(year: 2020, month: 12, day: 20))!
+    let partialLowerDate = try XCTUnwrap(calendar.date(from: DateComponents(year: 2020, month: 12, day: 10)))
+    let partialUpperDate = try XCTUnwrap(calendar.date(from: DateComponents(year: 2020, month: 12, day: 20)))
     let partialDateRange = partialLowerDate...partialUpperDate
 
     let enumerator = LayoutItemTypeEnumerator(
@@ -361,8 +361,8 @@ final class LayoutItemTypeEnumeratorTests: XCTestCase {
       }
     )
 
-    var forwardItems: [LayoutItem.ItemType] = []
-    var backwardItems: [LayoutItem.ItemType] = []
+    var forwardItems = [LayoutItem.ItemType]()
+    var backwardItems = [LayoutItem.ItemType]()
 
     enumerator.enumerateItemTypes(
       startingAt: .monthHeader(dec2020),
@@ -396,7 +396,7 @@ final class LayoutItemTypeEnumeratorTests: XCTestCase {
     XCTAssertEqual(decDays.count, 11)
 
     // After Dec 20, the next item should be the Jan header
-    let indexOfLastDecDay = forwardItems.lastIndex(of: .day(Day(month: dec2020, day: 20)))!
+    let indexOfLastDecDay = try XCTUnwrap(forwardItems.lastIndex(of: .day(Day(month: dec2020, day: 20))))
     XCTAssertEqual(forwardItems[indexOfLastDecDay + 1], .monthHeader(jan2021))
   }
 
@@ -420,7 +420,7 @@ final class LayoutItemTypeEnumeratorTests: XCTestCase {
       }
     )
 
-    var forwardItems: [LayoutItem.ItemType] = []
+    var forwardItems = [LayoutItem.ItemType]()
 
     enumerator.enumerateItemTypes(
       startingAt: .monthHeader(nov2020),
@@ -433,18 +433,23 @@ final class LayoutItemTypeEnumeratorTests: XCTestCase {
     for item in forwardItems {
       if case .day(let day) = item {
         XCTAssertNotEqual(
-          day.month, dec2020,
+          day.month,
+          dec2020,
           "No Dec days should appear in horizontal layout for .noDays month"
         )
       }
       if case .dayOfWeekInMonth(_, let month) = item {
         XCTAssertNotEqual(
-          month, dec2020,
+          month,
+          dec2020,
           "No Dec dayOfWeek should appear in horizontal layout for .noDays month"
         )
       }
     }
-    let decemberHeaderIndex = try XCTUnwrap(forwardItems.firstIndex { $0 == .monthHeader(dec2020) }, "Dec month header should appear")
+    let decemberHeaderIndex = try XCTUnwrap(
+      forwardItems.firstIndex { $0 == .monthHeader(dec2020) },
+      "Dec month header should appear"
+    )
     XCTAssertEqual(
       forwardItems[decemberHeaderIndex + 1],
       .monthHeader(jan2021),
@@ -452,7 +457,7 @@ final class LayoutItemTypeEnumeratorTests: XCTestCase {
     )
   }
 
-  func testEnumeratingVerticalItemsWithNonOverlappingPartialRange() {
+  func testEnumeratingVerticalItemsWithNonOverlappingPartialRange() throws {
     let nov2020 = Month(era: 1, year: 2020, month: 11, isInGregorianCalendar: true)
     let dec2020 = Month(era: 1, year: 2020, month: 12, isInGregorianCalendar: true)
     let jan2021 = Month(era: 1, year: 2021, month: 01, isInGregorianCalendar: true)
@@ -460,8 +465,8 @@ final class LayoutItemTypeEnumeratorTests: XCTestCase {
     let monthRange = nov2020...jan2021
     let dayRange = Day(month: nov2020, day: 12)...Day(month: jan2021, day: 20)
 
-    let nonOverlappingLowerDate = calendar.date(from: DateComponents(year: 2021, month: 6, day: 1))!
-    let nonOverlappingUpperDate = calendar.date(from: DateComponents(year: 2021, month: 6, day: 15))!
+    let nonOverlappingLowerDate = try XCTUnwrap(calendar.date(from: DateComponents(year: 2021, month: 6, day: 1)))
+    let nonOverlappingUpperDate = try XCTUnwrap(calendar.date(from: DateComponents(year: 2021, month: 6, day: 15)))
 
     let enumerator = LayoutItemTypeEnumerator(
       calendar: calendar,
@@ -473,8 +478,8 @@ final class LayoutItemTypeEnumeratorTests: XCTestCase {
       }
     )
 
-    var forwardItems: [LayoutItem.ItemType] = []
-    var backwardItems: [LayoutItem.ItemType] = []
+    var forwardItems = [LayoutItem.ItemType]()
+    var backwardItems = [LayoutItem.ItemType]()
 
     enumerator.enumerateItemTypes(
       startingAt: .monthHeader(dec2020),
@@ -496,13 +501,15 @@ final class LayoutItemTypeEnumeratorTests: XCTestCase {
     for item in forwardItems {
       if case .day(let day) = item {
         XCTAssertNotEqual(
-          day.month, dec2020,
+          day.month,
+          dec2020,
           "No Dec days should be enumerated for non-overlapping partialRange month"
         )
       }
       if case .dayOfWeekInMonth(_, let month) = item {
         XCTAssertNotEqual(
-          month, dec2020,
+          month,
+          dec2020,
           "No Dec dayOfWeek should be enumerated for non-overlapping partialRange month"
         )
       }
@@ -519,8 +526,8 @@ final class LayoutItemTypeEnumeratorTests: XCTestCase {
     let monthRange = nov2020...jan2021
     let dayRange = Day(month: nov2020, day: 1)...Day(month: jan2021, day: 31)
 
-    let nonOverlappingLowerDate = calendar.date(from: DateComponents(year: 2021, month: 6, day: 1))!
-    let nonOverlappingUpperDate = calendar.date(from: DateComponents(year: 2021, month: 6, day: 15))!
+    let nonOverlappingLowerDate = try XCTUnwrap(calendar.date(from: DateComponents(year: 2021, month: 6, day: 1)))
+    let nonOverlappingUpperDate = try XCTUnwrap(calendar.date(from: DateComponents(year: 2021, month: 6, day: 15)))
 
     let enumerator = LayoutItemTypeEnumerator(
       calendar: calendar,
@@ -534,7 +541,7 @@ final class LayoutItemTypeEnumeratorTests: XCTestCase {
       }
     )
 
-    var forwardItems: [LayoutItem.ItemType] = []
+    var forwardItems = [LayoutItem.ItemType]()
 
     enumerator.enumerateItemTypes(
       startingAt: .monthHeader(nov2020),
@@ -547,27 +554,29 @@ final class LayoutItemTypeEnumeratorTests: XCTestCase {
     for item in forwardItems {
       if case .day(let day) = item {
         XCTAssertNotEqual(
-          day.month, dec2020,
+          day.month,
+          dec2020,
           "No Dec days should appear in horizontal layout for non-overlapping partialRange"
         )
       }
       if case .dayOfWeekInMonth(_, let month) = item {
         XCTAssertNotEqual(
-          month, dec2020,
+          month,
+          dec2020,
           "No Dec dayOfWeek should appear in horizontal layout for non-overlapping partialRange"
         )
       }
     }
 
     let decHeaderIndex = try XCTUnwrap(forwardItems.firstIndex(of: .monthHeader(dec2020)), "Dec month header should still appear")
-      XCTAssertEqual(
-        forwardItems[decHeaderIndex + 1],
-        .monthHeader(jan2021),
-        "Jan header should immediately follow Dec header for non-overlapping partialRange"
-      )
+    XCTAssertEqual(
+      forwardItems[decHeaderIndex + 1],
+      .monthHeader(jan2021),
+      "Jan header should immediately follow Dec header for non-overlapping partialRange"
+    )
   }
 
-  func testEnumeratingHorizontalItemsWithPartialRangeMonth() {
+  func testEnumeratingHorizontalItemsWithPartialRangeMonth() throws {
     let dec2020 = Month(era: 1, year: 2020, month: 12, isInGregorianCalendar: true)
     let nov2020 = Month(era: 1, year: 2020, month: 11, isInGregorianCalendar: true)
     let jan2021 = Month(era: 1, year: 2021, month: 01, isInGregorianCalendar: true)
@@ -575,8 +584,8 @@ final class LayoutItemTypeEnumeratorTests: XCTestCase {
     let monthRange = nov2020...jan2021
     let dayRange = Day(month: nov2020, day: 1)...Day(month: jan2021, day: 31)
 
-    let partialLowerDate = calendar.date(from: DateComponents(year: 2020, month: 12, day: 15))!
-    let partialUpperDate = calendar.date(from: DateComponents(year: 2020, month: 12, day: 25))!
+    let partialLowerDate = try XCTUnwrap(calendar.date(from: DateComponents(year: 2020, month: 12, day: 15)))
+    let partialUpperDate = try XCTUnwrap(calendar.date(from: DateComponents(year: 2020, month: 12, day: 25)))
 
     let enumerator = LayoutItemTypeEnumerator(
       calendar: calendar,
@@ -590,7 +599,7 @@ final class LayoutItemTypeEnumeratorTests: XCTestCase {
       }
     )
 
-    var forwardItems: [LayoutItem.ItemType] = []
+    var forwardItems = [LayoutItem.ItemType]()
 
     enumerator.enumerateItemTypes(
       startingAt: .monthHeader(nov2020),

@@ -423,7 +423,8 @@ final class FrameProvider {
         day.month == content.monthRange.lowerBound
       {
         let boundaryRows = calendar.rowInMonth(
-          for: calendar.startDate(of: content.dayRange.lowerBound))
+          for: calendar.startDate(of: content.dayRange.lowerBound)
+        )
         rows = max(rows, boundaryRows)
       }
       missingRows = rows

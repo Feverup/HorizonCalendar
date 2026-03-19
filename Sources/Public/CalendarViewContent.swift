@@ -444,7 +444,7 @@ public final class CalendarViewContent {
 
   // MARK: Private
 
-  private var monthDayRangeCache: [Month: MonthDayRange?] = [:]
+  private var monthDayRangeCache = [Month: MonthDayRange?]()
 
   /// The default `monthHeaderItemProvider` if no provider has been configured,
   /// or if the existing provider returns nil.

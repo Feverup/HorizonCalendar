@@ -71,6 +71,3 @@ fastlane/test_output
 xcshareddata
 UserInterfaceState.xcuserstate
 .DS_Store
-
-# cursor
-.cursor

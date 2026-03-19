@@ -81,6 +81,10 @@ final class MonthDaysTintOverlayView: UIView {
     blurView.frame = daysRect ?? .zero
     blurView.isHidden = daysRect == nil
   }
+    
+    deinit {
+        blurAnimator.stopAnimation(true)
+    }
 
   // MARK: Fileprivate
 

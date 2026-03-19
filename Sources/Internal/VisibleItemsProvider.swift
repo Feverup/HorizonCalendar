@@ -298,6 +298,9 @@ final class VisibleItemsProvider {
     // Handle background items
     handleMonthBackgroundItemsIfNeeded(context: &context)
 
+    // Handle month overlay items
+    handleMonthOverlayItemsIfNeeded(context: &context)
+
     previousHeightsForVisibleMonthHeaders = context.heightsForVisibleMonthHeaders
     previousCalendarItemModelCache = context.calendarItemModelCache
 
@@ -715,7 +718,8 @@ final class VisibleItemsProvider {
     )
 
     let layoutNonVisibleItemsInPartiallyVisibleMonth = content.monthsLayout.isHorizontal ||
-      content.monthBackgroundItemProvider != nil
+      content.monthBackgroundItemProvider != nil ||
+      content.monthOverlayItemProvider != nil
 
     if
       layoutItem.frame.intersects(extendedBounds) ||
@@ -1143,6 +1147,101 @@ final class VisibleItemsProvider {
         missingValueProvider: {
           previousCalendarItemModelCache?[itemType] ??
             monthBackgroundItemProvider(monthLayoutContext)
+        }
+      )
+      if let itemModel {
+        let visibleItem = VisibleItem(
+          calendarItemModel: itemModel,
+          itemType: itemType,
+          frame: expandedMonthFrame
+        )
+        context.visibleItems.insert(visibleItem)
+      }
+    }
+  }
+
+  private func handleMonthOverlayItemsIfNeeded(context: inout VisibleItemsContext) {
+    guard let monthOverlayItemProvider = content.monthOverlayItemProvider else { return }
+
+    for (month, monthFrame) in context.framesForVisibleMonths {
+      let framesForDays: [Day: CGRect]
+      if let existingFrames = context.framesForDaysForVisibleMonths[month] {
+        framesForDays = existingFrames
+      } else if
+        let monthDayRange = content.monthDayRange(for: month),
+        !monthDayRange.hasVisibleDays(in: month, calendar: calendar)
+      {
+        framesForDays = [:]
+      } else {
+        continue
+      }
+
+      let extraWidth: CGFloat
+      let extraHeight: CGFloat
+      if content.monthsLayout.isHorizontal {
+        extraWidth = content.interMonthSpacing
+        extraHeight = size.height - monthFrame.height
+      } else {
+        extraWidth = size.width - monthFrame.width
+        extraHeight = content.interMonthSpacing
+      }
+
+      let expandedMonthFrame = CGRect(
+        x: monthFrame.minX - (extraWidth / 2),
+        y: monthFrame.minY - (extraHeight / 2),
+        width: monthFrame.width + extraWidth,
+        height: monthFrame.height + extraHeight
+      )
+      let frameToBoundsTransform = CGAffineTransform(
+        translationX: -expandedMonthFrame.minX,
+        y: -expandedMonthFrame.minY
+      )
+
+      let monthHeaderHeight = monthHeaderHeight(for: month, context: &context)
+
+      let monthHeaderFrame = frameProvider.frameOfMonthHeader(
+        inMonthWithOrigin: monthFrame.origin,
+        monthHeaderHeight: monthHeaderHeight
+      )
+      let finalMonthHeaderFrame = monthHeaderFrame
+        .applying(frameToBoundsTransform)
+        .alignedToPixels(forScreenWithScale: scale)
+
+      var dayOfWeekPositionsAndFrames = [(dayOfWeekPosition: DayOfWeekPosition, frame: CGRect)]()
+      for dayOfWeekPosition in DayOfWeekPosition.allCases {
+        let dayOfWeekFrame = frameProvider.frameOfDayOfWeek(
+          at: dayOfWeekPosition,
+          inMonthWithOrigin: monthFrame.origin,
+          monthHeaderHeight: monthHeaderHeight
+        )
+        let finalDayOfWeekFrame = dayOfWeekFrame
+          .applying(frameToBoundsTransform)
+          .alignedToPixels(forScreenWithScale: scale)
+        dayOfWeekPositionsAndFrames.append((dayOfWeekPosition, finalDayOfWeekFrame))
+      }
+
+      var daysAndFrames = [(day: Day, frame: CGRect)]()
+      for (day, dayFrame) in framesForDays {
+        let finalDayFrame = dayFrame
+          .applying(frameToBoundsTransform)
+          .alignedToPixels(forScreenWithScale: scale)
+        daysAndFrames.append((day, finalDayFrame))
+      }
+
+      let monthLayoutContext = MonthLayoutContext(
+        month: month,
+        monthHeaderFrame: finalMonthHeaderFrame,
+        dayOfWeekPositionsAndFrames: dayOfWeekPositionsAndFrames,
+        daysAndFrames: daysAndFrames.sorted(by: { $0.day < $1.day }),
+        bounds: CGRect(origin: .zero, size: expandedMonthFrame.size)
+      )
+
+      let itemType = VisibleItem.ItemType.monthOverlay(month)
+      let itemModel = context.calendarItemModelCache.optionalValue(
+        for: itemType,
+        missingValueProvider: {
+          previousCalendarItemModelCache?[itemType] ??
+            monthOverlayItemProvider(monthLayoutContext)
         }
       )
       if let itemModel {

@@ -311,6 +311,30 @@ public final class CalendarViewContent {
     return self
   }
 
+  /// Configures the month overlay item provider.
+  ///
+  /// `CalendarView` invokes the provided `monthOverlayItemProvider` for each month being displayed. The
+  /// `CalendarItemModel` that you return for each month will be used to create a view that spans the entire frame of that month,
+  /// just like `monthBackgroundItemProvider`, but rendered **on top** of the day content instead of behind it. This makes
+  /// month overlays useful for things like semi-transparent tints or decorations that should appear above day views.
+  ///
+  /// If you don't configure your own month overlay item provider via this function, then months will not have overlay decoration.
+  ///
+  /// - Parameters:
+  ///   - monthOverlayItemProvider: A closure (that is retained) that returns a `CalendarItemModel` representing the
+  ///   overlay of a single month in the calendar.
+  ///   - monthLayoutContext: The layout context for the month containing information about the frames of views in that month
+  ///   and the bounds in which your month overlay will be displayed.
+  /// - Returns: A mutated `CalendarViewContent` instance with a new month overlay item provider.
+  public func monthOverlayItemProvider(
+    _ monthOverlayItemProvider: @escaping (
+      _ monthLayoutContext: MonthLayoutContext
+    ) -> AnyCalendarItemModel?
+  ) -> CalendarViewContent {
+    self.monthOverlayItemProvider = monthOverlayItemProvider
+    return self
+  }
+
   /// Configures the per-month day range provider.
   ///
   /// `CalendarView` invokes the provided `monthDayRangeProvider` for each month in the visible range.
@@ -412,6 +436,7 @@ public final class CalendarViewContent {
   private(set) var dayItemProvider: (Day) -> AnyCalendarItemModel
   private(set) var dayBackgroundItemProvider: ((Day) -> AnyCalendarItemModel?)?
   private(set) var monthBackgroundItemProvider: ((MonthLayoutContext) -> AnyCalendarItemModel?)?
+  private(set) var monthOverlayItemProvider: ((MonthLayoutContext) -> AnyCalendarItemModel?)?
   private(set) var monthDayRangeProvider: ((Month) -> MonthDayRange?)?
   private(set) var dayRangesAndItemProvider: (
     dayRanges: Set<DayRange>,

@@ -87,6 +87,7 @@ extension VisibleItem {
     case pinnedDaysOfWeekRowSeparator
     case daysOfWeekRowSeparator(Month)
     case dayRange(DayRange)
+    case monthOverlay(Month)
     case overlayItem(OverlaidItemLocation)
   }
 

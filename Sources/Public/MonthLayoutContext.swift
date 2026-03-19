@@ -58,7 +58,7 @@ public struct MonthLayoutContext: Hashable {
       ) &&
       lhs.daysAndFrames.elementsEqual(
         rhs.daysAndFrames,
-        by: { $0.day == $1.day && $0.frame == $0.frame }
+        by: { $0.day == $1.day && $0.frame == $1.frame }
       ) &&
       lhs.bounds == rhs.bounds
   }

@@ -43,11 +43,7 @@ public struct MonthLayoutContext: Hashable {
   public let bounds: CGRect
 
   /// The bounding union rect of all day frames, or `nil` if there are no days in the month.
-  public var monthDaysAreaBounds: CGRect? {
-    daysAndFrames.dropFirst().reduce(daysAndFrames.first?.frame) { result, pair in
-      result?.union(pair.frame)
-    }
-  }
+  public let monthDaysAreaBounds: CGRect?
 
   public static func ==(lhs: MonthLayoutContext, rhs: MonthLayoutContext) -> Bool {
     lhs.month == rhs.month &&

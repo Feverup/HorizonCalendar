@@ -1129,12 +1129,20 @@ final class VisibleItemsProvider {
         daysAndFrames.append((day, finalDayFrame))
       }
 
+      let sortedDaysAndFrames = daysAndFrames.sorted(by: { $0.day < $1.day })
+      let monthDaysAreaBounds = sortedDaysAndFrames.dropFirst().reduce(
+        sortedDaysAndFrames.first?.frame
+      ) { result, pair in
+        result?.union(pair.frame)
+      }
+
       let monthLayoutContext = MonthLayoutContext(
         month: month,
         monthHeaderFrame: finalMonthHeaderFrame,
         dayOfWeekPositionsAndFrames: dayOfWeekPositionsAndFrames,
-        daysAndFrames: daysAndFrames.sorted(by: { $0.day < $1.day }),
-        bounds: CGRect(origin: .zero, size: expandedMonthFrame.size)
+        daysAndFrames: sortedDaysAndFrames,
+        bounds: CGRect(origin: .zero, size: expandedMonthFrame.size),
+        monthDaysAreaBounds: monthDaysAreaBounds
       )
 
       insertMonthItemIfNeeded(

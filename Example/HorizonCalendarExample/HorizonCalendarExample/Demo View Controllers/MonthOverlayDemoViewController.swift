@@ -20,8 +20,6 @@ import UIKit
 
 final class MonthOverlayDemoViewController: BaseDemoViewController {
 
-  // MARK: Internal
-
   override func viewDidLoad() {
     super.viewDidLoad()
     title = "Month Days Overlay"
@@ -40,11 +38,11 @@ final class MonthOverlayDemoViewController: BaseDemoViewController {
     .verticalDayMargin(8)
     .horizontalDayMargin(8)
     .monthOverlayItemProvider { monthLayoutContext in
-        guard monthLayoutContext.month.month == 2 else { return nil }
-          return MonthDaysTintOverlayView.calendarItemModel(
-            invariantViewProperties: .init(),
-            content: .init(daysRect: monthLayoutContext.monthDaysAreaBounds)
-          )
+      guard monthLayoutContext.month.month == 2 else { return nil }
+      return MonthDaysTintOverlayView.calendarItemModel(
+        invariantViewProperties: .init(),
+        content: .init(daysRect: monthLayoutContext.monthDaysAreaBounds)
+      )
     }
   }
 
@@ -72,7 +70,13 @@ final class MonthDaysTintOverlayView: UIView {
     blurAnimator.pausesOnCompletion = true
   }
 
-  required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+  required init?(coder _: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+
+  deinit {
+    blurAnimator.stopAnimation(true)
+  }
 
   // MARK: Internal
 
@@ -81,10 +85,6 @@ final class MonthDaysTintOverlayView: UIView {
     blurView.frame = daysRect ?? .zero
     blurView.isHidden = daysRect == nil
   }
-    
-    deinit {
-        blurAnimator.stopAnimation(true)
-    }
 
   // MARK: Fileprivate
 
@@ -108,7 +108,7 @@ final class MonthDaysTintOverlayView: UIView {
 extension MonthDaysTintOverlayView: CalendarItemViewRepresentable {
 
   struct InvariantViewProperties: Hashable {
-    var blurStyle: UIBlurEffect.Style = .extraLight
+    var blurStyle = UIBlurEffect.Style.extraLight
     var blurIntensity: CGFloat = 0.1
   }
 

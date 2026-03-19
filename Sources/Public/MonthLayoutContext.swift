@@ -38,16 +38,16 @@ public struct MonthLayoutContext: Hashable {
   /// Each frame represents the frame of an individual day in the month in the coordinate system of `bounds`.
   public let daysAndFrames: [(day: DayComponents, frame: CGRect)]
 
+  /// The bounds into which a background can be drawn without getting clipped. Additionally, all other frames in this type are in the
+  /// coordinate system of this.
+  public let bounds: CGRect
+
   /// The bounding union rect of all day frames, or `nil` if there are no days in the month.
   public var monthDaysAreaBounds: CGRect? {
     daysAndFrames.dropFirst().reduce(daysAndFrames.first?.frame) { result, pair in
       result?.union(pair.frame)
     }
   }
-
-  /// The bounds into which a background can be drawn without getting clipped. Additionally, all other frames in this type are in the
-  /// coordinate system of this.
-  public let bounds: CGRect
 
   public static func ==(lhs: MonthLayoutContext, rhs: MonthLayoutContext) -> Bool {
     lhs.month == rhs.month &&

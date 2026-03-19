@@ -66,8 +66,8 @@ final class MonthDaysTintOverlayView: UIView {
     blurAnimator = UIViewPropertyAnimator(duration: 1, curve: .linear) { [blurView] in
       blurView.effect = UIBlurEffect(style: invariantViewProperties.blurStyle)
     }
-    blurAnimator.fractionComplete = invariantViewProperties.blurIntensity
-    blurAnimator.pausesOnCompletion = true
+    blurAnimator?.fractionComplete = invariantViewProperties.blurIntensity
+    blurAnimator?.pausesOnCompletion = true
   }
 
   required init?(coder _: NSCoder) {
@@ -75,7 +75,7 @@ final class MonthDaysTintOverlayView: UIView {
   }
 
   deinit {
-    blurAnimator.stopAnimation(true)
+    blurAnimator?.stopAnimation(true)
   }
 
   // MARK: Internal
@@ -99,7 +99,7 @@ final class MonthDaysTintOverlayView: UIView {
 
   private let invariantViewProperties: InvariantViewProperties
   private let blurView = UIVisualEffectView()
-  private var blurAnimator: UIViewPropertyAnimator!
+  private var blurAnimator: UIViewPropertyAnimator?
 
 }
 

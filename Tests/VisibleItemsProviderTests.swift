@@ -1675,6 +1675,122 @@ final class VisibleItemsProviderTests: XCTestCase {
     XCTAssert(hasJulyDayOfWeek, "July dayOfWeek items should be visible for .partialRange month")
   }
 
+  func testVerticalVisibleItemsContainMonthOverlay() {
+    let details = verticalOverlayVisibleItemsProvider.detailsForVisibleItems(
+      surroundingPreviouslyVisibleLayoutItem: LayoutItem(
+        itemType: .monthHeader(Month(era: 1, year: 2020, month: 03, isInGregorianCalendar: true)),
+        frame: CGRect(x: 0, y: 200, width: 320, height: 50)
+      ),
+      offset: CGPoint(x: 0, y: 150),
+      extendLayoutRegion: false
+    )
+
+    let visibleDescriptions = Set(details.visibleItems.map { $0.description })
+
+    let overlayItems = visibleDescriptions.filter { $0.contains(".monthOverlay(") }
+    XCTAssertFalse(overlayItems.isEmpty, "Month overlay items should be present when monthOverlayItemProvider returns a model")
+
+    let hasBackgrounds = visibleDescriptions.contains { $0.contains(".monthBackground(") }
+    XCTAssert(hasBackgrounds, "Month background items should also still be present")
+  }
+
+  func testVerticalVisibleItemsExcludeMonthOverlayWhenProviderReturnsNil() {
+    let details = verticalNilOverlayVisibleItemsProvider.detailsForVisibleItems(
+      surroundingPreviouslyVisibleLayoutItem: LayoutItem(
+        itemType: .monthHeader(Month(era: 1, year: 2020, month: 03, isInGregorianCalendar: true)),
+        frame: CGRect(x: 0, y: 200, width: 320, height: 50)
+      ),
+      offset: CGPoint(x: 0, y: 150),
+      extendLayoutRegion: false
+    )
+
+    let visibleDescriptions = Set(details.visibleItems.map { $0.description })
+
+    let overlayItems = visibleDescriptions.filter { $0.contains(".monthOverlay(") }
+    XCTAssert(overlayItems.isEmpty, "No month overlay items should be present when monthOverlayItemProvider returns nil")
+
+    let hasBackgrounds = visibleDescriptions.contains { $0.contains(".monthBackground(") }
+    XCTAssert(hasBackgrounds, "Month background items should still be present even though overlay returns nil")
+  }
+
+  func testMonthDaysAreaBoundsComputation() {
+    var capturedContexts = [Month: MonthLayoutContext]()
+
+    let june2020 = Month(era: 1, year: 2020, month: 06, isInGregorianCalendar: true)
+
+    let provider = VisibleItemsProvider(
+      calendar: Self.calendar,
+      content: Self.makeContent(
+        fromBaseContent: CalendarViewContent(
+          calendar: Self.calendar,
+          visibleDateRange: Self.dateRange,
+          monthsLayout: .vertical(options: VerticalMonthsLayoutOptions())
+        )
+      )
+      .monthDayRangeProvider { month in
+        if month == june2020 {
+          return .noDays
+        }
+        return nil
+      }
+      .monthOverlayItemProvider { context in
+        capturedContexts[context.month] = context
+        return Self.mockCalendarItemModel()
+      },
+      size: Self.size,
+      layoutMargins: .zero,
+      scale: 2,
+      backgroundColor: nil
+    )
+
+    // Scroll to June to capture a .noDays month alongside normal months
+    _ = provider.detailsForVisibleItems(
+      surroundingPreviouslyVisibleLayoutItem: LayoutItem(
+        itemType: .monthHeader(june2020),
+        frame: CGRect(x: 0, y: 200, width: 320, height: 50)
+      ),
+      offset: CGPoint(x: 0, y: 150),
+      extendLayoutRegion: false
+    )
+
+    // Verify .noDays month has nil monthDaysAreaBounds
+    if let juneContext = capturedContexts[june2020] {
+      XCTAssertNil(
+        juneContext.monthDaysAreaBounds,
+        "monthDaysAreaBounds should be nil for a .noDays month"
+      )
+      XCTAssert(
+        juneContext.daysAndFrames.isEmpty,
+        "daysAndFrames should be empty for a .noDays month"
+      )
+    } else {
+      XCTFail("June 2020 overlay context was not captured")
+    }
+
+    // Verify a normal month has non-nil monthDaysAreaBounds equal to the union of all day frames
+    let normalMonthContexts = capturedContexts.filter { $0.key != june2020 }
+    XCTAssertFalse(normalMonthContexts.isEmpty, "At least one normal month context should be captured")
+
+    for (month, context) in normalMonthContexts {
+      XCTAssertFalse(
+        context.daysAndFrames.isEmpty,
+        "Normal month \(month) should have day frames"
+      )
+
+      let expectedBounds = context.daysAndFrames.dropFirst().reduce(
+        context.daysAndFrames.first!.frame
+      ) { result, pair in
+        result.union(pair.frame)
+      }
+
+      XCTAssertEqual(
+        context.monthDaysAreaBounds,
+        expectedBounds,
+        "monthDaysAreaBounds for \(month) should equal the union of all day frames"
+      )
+    }
+  }
+
   // MARK: Private
 
   private static let calendar = Calendar(identifier: .gregorian)
@@ -1809,6 +1925,38 @@ final class VisibleItemsProviderTests: XCTestCase {
       backgroundColor: nil
     )
   }()
+
+  private var verticalOverlayVisibleItemsProvider = VisibleItemsProvider(
+    calendar: calendar,
+    content: makeContent(
+      fromBaseContent: CalendarViewContent(
+        calendar: calendar,
+        visibleDateRange: dateRange,
+        monthsLayout: .vertical(options: VerticalMonthsLayoutOptions())
+      )
+    )
+    .monthOverlayItemProvider { _ in mockCalendarItemModel() },
+    size: size,
+    layoutMargins: .zero,
+    scale: 2,
+    backgroundColor: nil
+  )
+
+  private var verticalNilOverlayVisibleItemsProvider = VisibleItemsProvider(
+    calendar: calendar,
+    content: makeContent(
+      fromBaseContent: CalendarViewContent(
+        calendar: calendar,
+        visibleDateRange: dateRange,
+        monthsLayout: .vertical(options: VerticalMonthsLayoutOptions())
+      )
+    )
+    .monthOverlayItemProvider { _ in nil },
+    size: size,
+    layoutMargins: .zero,
+    scale: 2,
+    backgroundColor: nil
+  )
 
   private static func mockCalendarItemModel(height: CGFloat = 50) -> AnyCalendarItemModel {
     final class MockView: UIView, CalendarItemViewRepresentable {

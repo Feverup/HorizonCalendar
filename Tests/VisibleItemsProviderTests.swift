@@ -1713,7 +1713,7 @@ final class VisibleItemsProviderTests: XCTestCase {
     XCTAssert(hasBackgrounds, "Month background items should still be present even though overlay returns nil")
   }
 
-  func testMonthDaysAreaBoundsComputation() {
+  func testMonthDaysAreaBoundsComputation() throws {
     var capturedContexts = [Month: MonthLayoutContext]()
 
     let june2020 = Month(era: 1, year: 2020, month: 06, isInGregorianCalendar: true)
@@ -1778,7 +1778,7 @@ final class VisibleItemsProviderTests: XCTestCase {
       )
 
       let expectedBounds = context.daysAndFrames.dropFirst().reduce(
-        context.daysAndFrames.first!.frame
+        try XCTUnwrap(context.daysAndFrames.first?.frame)
       ) { result, pair in
         result.union(pair.frame)
       }

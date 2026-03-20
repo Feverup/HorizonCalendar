@@ -28,6 +28,7 @@ final class SubviewInsertionIndexTrackerTests: XCTestCase {
       .pinnedDaysOfWeekRowSeparator,
       .pinnedDaysOfWeekRowBackground,
       .overlayItem(.monthHeader(monthContainingDate: Date())),
+      .monthOverlay(Month(era: 1, year: 2022, month: 1, isInGregorianCalendar: true)),
       .daysOfWeekRowSeparator(
         Month(era: 1, year: 2022, month: 1, isInGregorianCalendar: true)
       ),
@@ -78,6 +79,7 @@ final class SubviewInsertionIndexTrackerTests: XCTestCase {
         .monthHeader(Month(era: 1, year: 2022, month: 8, isInGregorianCalendar: true))
       ),
       .overlayItem(.monthHeader(monthContainingDate: Date())),
+      .monthOverlay(Month(era: 1, year: 2022, month: 1, isInGregorianCalendar: true)),
       .pinnedDaysOfWeekRowBackground,
       .dayRange(.init(containing: Date()...Date(), in: .current)),
       .layoutItemType(
@@ -163,10 +165,11 @@ extension VisibleItem.ItemType: Comparable {
     case .dayRange: return 2
     case .layoutItemType: return 3
     case .daysOfWeekRowSeparator: return 4
-    case .overlayItem: return 5
-    case .pinnedDaysOfWeekRowBackground: return 6
-    case .pinnedDayOfWeek: return 7
-    case .pinnedDaysOfWeekRowSeparator: return 8
+    case .monthOverlay: return 5
+    case .overlayItem: return 6
+    case .pinnedDaysOfWeekRowBackground: return 7
+    case .pinnedDayOfWeek: return 8
+    case .pinnedDaysOfWeekRowSeparator: return 9
     }
   }
 

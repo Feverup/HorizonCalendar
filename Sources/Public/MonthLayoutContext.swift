@@ -42,6 +42,9 @@ public struct MonthLayoutContext: Hashable {
   /// coordinate system of this.
   public let bounds: CGRect
 
+  /// The bounding union rect of all day frames, or `nil` if there are no days in the month.
+  public let monthDaysAreaBounds: CGRect?
+
   public static func ==(lhs: MonthLayoutContext, rhs: MonthLayoutContext) -> Bool {
     lhs.month == rhs.month &&
       lhs.monthHeaderFrame == rhs.monthHeaderFrame &&
@@ -51,9 +54,10 @@ public struct MonthLayoutContext: Hashable {
       ) &&
       lhs.daysAndFrames.elementsEqual(
         rhs.daysAndFrames,
-        by: { $0.day == $1.day && $0.frame == $0.frame }
+        by: { $0.day == $1.day && $0.frame == $1.frame }
       ) &&
-      lhs.bounds == rhs.bounds
+      lhs.bounds == rhs.bounds &&
+      lhs.monthDaysAreaBounds == rhs.monthDaysAreaBounds
   }
 
   public func hash(into hasher: inout Hasher) {
@@ -68,6 +72,7 @@ public struct MonthLayoutContext: Hashable {
       hasher.combine(frame)
     }
     hasher.combine(bounds)
+    hasher.combine(monthDaysAreaBounds)
   }
 
 }

@@ -108,6 +108,7 @@ public struct CalendarViewRepresentable: UIViewRepresentable {
   fileprivate var dayItemProvider: ((Day) -> AnyCalendarItemModel?)?
   fileprivate var dayBackgroundItemProvider: ((Day) -> AnyCalendarItemModel?)?
   fileprivate var monthBackgroundItemProvider: ((MonthLayoutContext) -> AnyCalendarItemModel?)?
+  fileprivate var monthOverlayItemProvider: ((MonthLayoutContext) -> AnyCalendarItemModel?)?
   fileprivate var monthDayRangeProvider: ((MonthComponents) -> CalendarViewContent.MonthDayRange?)?
   fileprivate var dateRangesAndItemProvider: (
     dayRanges: Set<ClosedRange<Date>>,
@@ -183,6 +184,10 @@ public struct CalendarViewRepresentable: UIViewRepresentable {
 
     if let monthBackgroundItemProvider {
       content = content.monthBackgroundItemProvider(monthBackgroundItemProvider)
+    }
+
+    if let monthOverlayItemProvider {
+      content = content.monthOverlayItemProvider(monthOverlayItemProvider)
     }
 
     if let monthDayRangeProvider {
@@ -546,6 +551,64 @@ extension CalendarViewRepresentable {
     @ViewBuilder _ content: @escaping (_ monthLayoutContext: MonthLayoutContext) -> some View
   ) -> Self {
     monthBackgroundItemProvider { monthLayoutContext in
+      let view = content(monthLayoutContext)
+      if view is EmptyView {
+        return nil
+      } else {
+        return view.calendarItemModel
+      }
+    }
+  }
+
+  /// Configures the month overlay item provider. Consider using the `monthOverlays(_:)` modifier instead if your
+  /// custom month overlay views are SwiftUI views.
+  ///
+  /// `CalendarView` invokes the provided `monthOverlayItemProvider` for each month being displayed. The
+  /// `CalendarItemModel` that you return for each month will be used to create a view that spans the entire frame of that month,
+  /// just like `monthBackgroundItemProvider`, but rendered **on top** of the day content instead of behind it. This makes
+  /// month overlays useful for things like semi-transparent tints or decorations that should appear above day views.
+  ///
+  /// If you don't configure your own month overlay item provider via this function, then months will not have any overlay decoration.
+  ///
+  /// - Note: Overlay views are rendered above day views and will intercept touches unless `isUserInteractionEnabled` is set to
+  /// `false` or `.allowsHitTesting(false)` is applied.
+  ///
+  /// - Parameters:
+  ///   - monthOverlayItemProvider: A closure (that is retained) that returns a `CalendarItemModel` representing the
+  ///   overlay of a single month in the calendar.
+  ///   - monthLayoutContext: The layout context for the month containing information about the frames of views in that month
+  ///   and the bounds in which your month overlay will be displayed.
+  /// - Returns: A new `CalendarViewRepresentable` with a new month overlay item provider.
+  public func monthOverlayItemProvider(
+    _ monthOverlayItemProvider: @escaping (
+      _ monthLayoutContext: MonthLayoutContext
+    ) -> AnyCalendarItemModel?
+  ) -> Self {
+    var view = self
+    view.monthOverlayItemProvider = monthOverlayItemProvider
+    return view
+  }
+
+  /// Configures month overlay views using a SwiftUI view builder.
+  ///
+  /// The `content` view builder closure is invoked for each month that's displayed. Each view will span the entire frame of that
+  /// month, rendered **on top** of the day content instead of behind it. This makes month overlays useful for things like
+  /// semi-transparent tints or decorations that should appear above day views.
+  ///
+  /// If you don't configure your own month overlay views via this modifier, then months will not have any overlay decoration. If
+  /// a particular month doesn't need an overlay view, return `EmptyView` for that month.
+  ///
+  /// - Note: Overlay views are rendered above day views and will intercept touches unless `.allowsHitTesting(false)` is applied.
+  ///
+  /// - Parameters:
+  ///   - content: A view builder that creates a view for the overlay of a single month in the calendar.
+  ///   - monthLayoutContext: The layout context for the month containing information about the frames of views in that month
+  ///   and the bounds in which your month overlay will be displayed.
+  /// - Returns: A new `CalendarViewRepresentable` with month overlay views configured.
+  public func monthOverlays(
+    @ViewBuilder _ content: @escaping (_ monthLayoutContext: MonthLayoutContext) -> some View
+  ) -> Self {
+    monthOverlayItemProvider { monthLayoutContext in
       let view = content(monthLayoutContext)
       if view is EmptyView {
         return nil

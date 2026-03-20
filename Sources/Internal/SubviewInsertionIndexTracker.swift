@@ -34,6 +34,8 @@ final class SubviewInsertionIndexTracker {
       index = mainItemsEndIndex
     case .daysOfWeekRowSeparator:
       index = daysOfWeekRowSeparatorItemsEndIndex
+    case .monthOverlay:
+      index = monthOverlayItemsEndIndex
     case .overlayItem:
       index = overlayItemsEndIndex
     case .pinnedDaysOfWeekRowBackground:
@@ -60,6 +62,7 @@ final class SubviewInsertionIndexTracker {
   private var dayRangeItemsEndIndex = 0
   private var mainItemsEndIndex = 0
   private var daysOfWeekRowSeparatorItemsEndIndex = 0
+  private var monthOverlayItemsEndIndex = 0
   private var overlayItemsEndIndex = 0
   private var pinnedDaysOfWeekRowBackgroundEndIndex = 0
   private var pinnedDayOfWeekItemsEndIndex = 0
@@ -72,6 +75,7 @@ final class SubviewInsertionIndexTracker {
       dayRangeItemsEndIndex += value
       mainItemsEndIndex += value
       daysOfWeekRowSeparatorItemsEndIndex += value
+      monthOverlayItemsEndIndex += value
       overlayItemsEndIndex += value
       pinnedDaysOfWeekRowBackgroundEndIndex += value
       pinnedDayOfWeekItemsEndIndex += value
@@ -82,6 +86,7 @@ final class SubviewInsertionIndexTracker {
       dayRangeItemsEndIndex += value
       mainItemsEndIndex += value
       daysOfWeekRowSeparatorItemsEndIndex += value
+      monthOverlayItemsEndIndex += value
       overlayItemsEndIndex += value
       pinnedDaysOfWeekRowBackgroundEndIndex += value
       pinnedDayOfWeekItemsEndIndex += value
@@ -91,6 +96,7 @@ final class SubviewInsertionIndexTracker {
       dayRangeItemsEndIndex += value
       mainItemsEndIndex += value
       daysOfWeekRowSeparatorItemsEndIndex += value
+      monthOverlayItemsEndIndex += value
       overlayItemsEndIndex += value
       pinnedDaysOfWeekRowBackgroundEndIndex += value
       pinnedDayOfWeekItemsEndIndex += value
@@ -99,6 +105,7 @@ final class SubviewInsertionIndexTracker {
     case .layoutItemType:
       mainItemsEndIndex += value
       daysOfWeekRowSeparatorItemsEndIndex += value
+      monthOverlayItemsEndIndex += value
       overlayItemsEndIndex += value
       pinnedDaysOfWeekRowBackgroundEndIndex += value
       pinnedDayOfWeekItemsEndIndex += value
@@ -106,6 +113,14 @@ final class SubviewInsertionIndexTracker {
 
     case .daysOfWeekRowSeparator:
       daysOfWeekRowSeparatorItemsEndIndex += value
+      monthOverlayItemsEndIndex += value
+      overlayItemsEndIndex += value
+      pinnedDaysOfWeekRowBackgroundEndIndex += value
+      pinnedDayOfWeekItemsEndIndex += value
+      pinnedDaysOfWeekRowSeparatorEndIndex += value
+
+    case .monthOverlay:
+      monthOverlayItemsEndIndex += value
       overlayItemsEndIndex += value
       pinnedDaysOfWeekRowBackgroundEndIndex += value
       pinnedDayOfWeekItemsEndIndex += value

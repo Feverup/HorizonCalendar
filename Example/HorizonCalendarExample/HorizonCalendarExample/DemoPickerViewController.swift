@@ -67,6 +67,7 @@ final class DemoPickerViewController: UIViewController {
       ("Scroll to Day With Animation", ScrollToDayWithAnimationDemoViewController.self),
       ("Partial Month Visibility", PartialMonthVisibilityDemoViewController.self),
       ("Month Grid Background", MonthBackgroundDemoViewController.self),
+      ("Month Days Overlay", MonthOverlayDemoViewController.self),
       ("SwiftUI Day and Month View", SwiftUIItemModelsDemoViewController.self),
       ("SwiftUI Screen", SwiftUIScreenDemoViewController.self),
     ]
@@ -79,6 +80,7 @@ final class DemoPickerViewController: UIViewController {
       ("Large Day Range", LargeDayRangeDemoViewController.self),
       ("Scroll to Day With Animation", ScrollToDayWithAnimationDemoViewController.self),
       ("Month Grid Background", MonthBackgroundDemoViewController.self),
+      ("Month Days Overlay", MonthOverlayDemoViewController.self),
       ("SwiftUI Day and Month View", SwiftUIItemModelsDemoViewController.self),
       ("SwiftUI Screen", SwiftUIScreenDemoViewController.self),
     ]

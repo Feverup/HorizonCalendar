@@ -22,6 +22,7 @@
 		939E69942484D55200A8BCC7 /* HorizonCalendar.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 939E69912484D11000A8BCC7 /* HorizonCalendar.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		93A7258E24A1F26C00B4F08F /* PartialMonthVisibilityDemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93A7258D24A1F26C00B4F08F /* PartialMonthVisibilityDemoViewController.swift */; };
 		93AF5545248DCC8900BDB0FF /* DayRangeIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93AF5544248DCC8900BDB0FF /* DayRangeIndicatorView.swift */; };
+		9503CCD72F6BFAA400883FC3 /* MonthOverlayDemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9503CCD62F6BFAA400883FC3 /* MonthOverlayDemoViewController.swift */; };
 		FD53899F299476AD007D56EB /* DayRangeSelectionTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD53899E299476AD007D56EB /* DayRangeSelectionTracker.swift */; };
 		FD55C5D7298B138A00A9B5D6 /* SwiftUIScreenDemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD55C5D6298B138A00A9B5D6 /* SwiftUIScreenDemoViewController.swift */; };
 		FDA0FB3528F5EFD90066DEFA /* SwiftUIDayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDA0FB3428F5EFD90066DEFA /* SwiftUIDayView.swift */; };
@@ -60,6 +61,7 @@
 		939E69912484D11000A8BCC7 /* HorizonCalendar.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = HorizonCalendar.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		93A7258D24A1F26C00B4F08F /* PartialMonthVisibilityDemoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartialMonthVisibilityDemoViewController.swift; sourceTree = "<group>"; };
 		93AF5544248DCC8900BDB0FF /* DayRangeIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayRangeIndicatorView.swift; sourceTree = "<group>"; };
+		9503CCD62F6BFAA400883FC3 /* MonthOverlayDemoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthOverlayDemoViewController.swift; sourceTree = "<group>"; };
 		FD53899E299476AD007D56EB /* DayRangeSelectionTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayRangeSelectionTracker.swift; sourceTree = "<group>"; };
 		FD55C5D6298B138A00A9B5D6 /* SwiftUIScreenDemoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUIScreenDemoViewController.swift; sourceTree = "<group>"; };
 		FDA0FB3428F5EFD90066DEFA /* SwiftUIDayView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftUIDayView.swift; sourceTree = "<group>"; };
@@ -82,6 +84,7 @@
 		9381769D249B79CB00E18FA3 /* Demo View Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				9503CCD62F6BFAA400883FC3 /* MonthOverlayDemoViewController.swift */,
 				938176A6249B85CE00E18FA3 /* DemoViewController.swift */,
 				939E696E2484CD8E00A8BCC7 /* SingleDaySelectionDemoViewController.swift */,
 				938176A0249B7CE600E18FA3 /* DayRangeSelectionDemoViewController.swift */,
@@ -213,6 +216,7 @@
 				FDA0FB3728F5EFF60066DEFA /* SwiftUIItemModelsDemoViewController.swift in Sources */,
 				939E696F2484CD8E00A8BCC7 /* SingleDaySelectionDemoViewController.swift in Sources */,
 				938176A3249B7F0800E18FA3 /* SelectedDayTooltipDemoViewController.swift in Sources */,
+				9503CCD72F6BFAA400883FC3 /* MonthOverlayDemoViewController.swift in Sources */,
 				FDA0FB3528F5EFD90066DEFA /* SwiftUIDayView.swift in Sources */,
 				938176A1249B7CE600E18FA3 /* DayRangeSelectionDemoViewController.swift in Sources */,
 				FD53899F299476AD007D56EB /* DayRangeSelectionTracker.swift in Sources */,

@@ -295,8 +295,8 @@ final class VisibleItemsProvider {
     // Handle overlay items
     handleOverlayItemsIfNeeded(bounds: bounds, context: &context)
 
-    // Handle background items
-    handleMonthBackgroundItemsIfNeeded(context: &context)
+    // Handle month background and overlay items
+    handleMonthBackgroundAndOverlayItemsIfNeeded(context: &context)
 
     previousHeightsForVisibleMonthHeaders = context.heightsForVisibleMonthHeaders
     previousCalendarItemModelCache = context.calendarItemModelCache
@@ -715,7 +715,8 @@ final class VisibleItemsProvider {
     )
 
     let layoutNonVisibleItemsInPartiallyVisibleMonth = content.monthsLayout.isHorizontal ||
-      content.monthBackgroundItemProvider != nil
+      content.monthBackgroundItemProvider != nil ||
+      content.monthOverlayItemProvider != nil
 
     if
       layoutItem.frame.intersects(extendedBounds) ||
@@ -1056,8 +1057,12 @@ final class VisibleItemsProvider {
     }
   }
 
-  private func handleMonthBackgroundItemsIfNeeded(context: inout VisibleItemsContext) {
-    guard let monthBackgroundItemProvider = content.monthBackgroundItemProvider else { return }
+  private func handleMonthBackgroundAndOverlayItemsIfNeeded(
+    context: inout VisibleItemsContext
+  ) {
+    let backgroundProvider = content.monthBackgroundItemProvider
+    let overlayProvider = content.monthOverlayItemProvider
+    guard backgroundProvider != nil || overlayProvider != nil else { return }
 
     for (month, monthFrame) in context.framesForVisibleMonths {
       let framesForDays: [Day: CGRect]
@@ -1077,11 +1082,11 @@ final class VisibleItemsProvider {
       let extraWidth: CGFloat
       let extraHeight: CGFloat
       if content.monthsLayout.isHorizontal {
-        extraWidth = content.interMonthSpacing // half before leading edge, half after trailing edge
+        extraWidth = content.interMonthSpacing
         extraHeight = size.height - monthFrame.height
       } else {
         extraWidth = size.width - monthFrame.width
-        extraHeight = content.interMonthSpacing // half before top edge, half after bottom edge
+        extraHeight = content.interMonthSpacing
       }
 
       let expandedMonthFrame = CGRect(
@@ -1129,30 +1134,58 @@ final class VisibleItemsProvider {
         daysAndFrames.append((day, finalDayFrame))
       }
 
+      let sortedDaysAndFrames = daysAndFrames.sorted(by: { $0.day < $1.day })
+      let monthDaysAreaBounds = sortedDaysAndFrames.dropFirst().reduce(
+        sortedDaysAndFrames.first?.frame
+      ) { result, pair in
+        result?.union(pair.frame)
+      }
+
       let monthLayoutContext = MonthLayoutContext(
         month: month,
         monthHeaderFrame: finalMonthHeaderFrame,
         dayOfWeekPositionsAndFrames: dayOfWeekPositionsAndFrames,
-        daysAndFrames: daysAndFrames.sorted(by: { $0.day < $1.day }),
-        bounds: CGRect(origin: .zero, size: expandedMonthFrame.size)
+        daysAndFrames: sortedDaysAndFrames,
+        bounds: CGRect(origin: .zero, size: expandedMonthFrame.size),
+        monthDaysAreaBounds: monthDaysAreaBounds
       )
 
-      let itemType = VisibleItem.ItemType.monthBackground(month)
-      let itemModel = context.calendarItemModelCache.optionalValue(
-        for: itemType,
-        missingValueProvider: {
-          previousCalendarItemModelCache?[itemType] ??
-            monthBackgroundItemProvider(monthLayoutContext)
-        }
+      insertMonthItemIfNeeded(
+        itemType: .monthBackground(month),
+        provider: backgroundProvider,
+        monthLayoutContext: monthLayoutContext,
+        frame: expandedMonthFrame,
+        context: &context
       )
-      if let itemModel {
-        let visibleItem = VisibleItem(
-          calendarItemModel: itemModel,
-          itemType: itemType,
-          frame: expandedMonthFrame
-        )
-        context.visibleItems.insert(visibleItem)
+
+      insertMonthItemIfNeeded(
+        itemType: .monthOverlay(month),
+        provider: overlayProvider,
+        monthLayoutContext: monthLayoutContext,
+        frame: expandedMonthFrame,
+        context: &context
+      )
+    }
+  }
+
+  private func insertMonthItemIfNeeded(
+    itemType: VisibleItem.ItemType,
+    provider: ((MonthLayoutContext) -> AnyCalendarItemModel?)?,
+    monthLayoutContext: MonthLayoutContext,
+    frame: CGRect,
+    context: inout VisibleItemsContext
+  ) {
+    guard let provider else { return }
+    let itemModel = context.calendarItemModelCache.optionalValue(
+      for: itemType,
+      missingValueProvider: {
+        previousCalendarItemModelCache?[itemType] ?? provider(monthLayoutContext)
       }
+    )
+    if let itemModel {
+      context.visibleItems.insert(
+        VisibleItem(calendarItemModel: itemModel, itemType: itemType, frame: frame)
+      )
     }
   }
 

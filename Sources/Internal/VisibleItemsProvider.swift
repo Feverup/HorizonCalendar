@@ -1077,6 +1077,8 @@ final class VisibleItemsProvider {
         continue
       }
 
+      // We need to expand the frame of the month so that we have enough room at the edges to draw
+      // the background without getting clipped.
       let extraWidth: CGFloat
       let extraHeight: CGFloat
       if content.monthsLayout.isHorizontal {
@@ -1100,6 +1102,7 @@ final class VisibleItemsProvider {
 
       let monthHeaderHeight = monthHeaderHeight(for: month, context: &context)
 
+      // Get the month header frame
       let monthHeaderFrame = frameProvider.frameOfMonthHeader(
         inMonthWithOrigin: monthFrame.origin,
         monthHeaderHeight: monthHeaderHeight
@@ -1108,6 +1111,7 @@ final class VisibleItemsProvider {
         .applying(frameToBoundsTransform)
         .alignedToPixels(forScreenWithScale: scale)
 
+      // Get the days-of-the-week item frames
       var dayOfWeekPositionsAndFrames = [(dayOfWeekPosition: DayOfWeekPosition, frame: CGRect)]()
       for dayOfWeekPosition in DayOfWeekPosition.allCases {
         let dayOfWeekFrame = frameProvider.frameOfDayOfWeek(
@@ -1121,6 +1125,7 @@ final class VisibleItemsProvider {
         dayOfWeekPositionsAndFrames.append((dayOfWeekPosition, finalDayOfWeekFrame))
       }
 
+      // Get all frames for days in the month
       var daysAndFrames = [(day: Day, frame: CGRect)]()
       for (day, dayFrame) in framesForDays {
         let finalDayFrame = dayFrame

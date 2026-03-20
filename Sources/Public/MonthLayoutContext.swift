@@ -56,7 +56,8 @@ public struct MonthLayoutContext: Hashable {
         rhs.daysAndFrames,
         by: { $0.day == $1.day && $0.frame == $1.frame }
       ) &&
-      lhs.bounds == rhs.bounds
+      lhs.bounds == rhs.bounds &&
+      lhs.monthDaysAreaBounds == rhs.monthDaysAreaBounds
   }
 
   public func hash(into hasher: inout Hasher) {
@@ -71,6 +72,7 @@ public struct MonthLayoutContext: Hashable {
       hasher.combine(frame)
     }
     hasher.combine(bounds)
+    hasher.combine(monthDaysAreaBounds)
   }
 
 }

@@ -36,6 +36,12 @@ public final class CalendarViewProxy: ObservableObject {
     calendarView.visibleDayRange
   }
 
+  /// The total height of all calendar content when using a vertical months layout.
+  /// Returns `0` if the calendar view has not been laid out.
+  public var totalContentHeight: CGFloat {
+    calendarView.totalContentHeight
+  }
+
   /// Scrolls the calendar to the specified month with the specified position.
   ///
   /// If the calendar has a non-zero frame, this function will scroll to the specified month immediately. Otherwise the scroll-to-month

@@ -316,11 +316,30 @@ final class VisibleItemsProvider {
     )
   }
 
+  func totalContentHeight() -> CGFloat {
+    if let cached = _totalContentHeight {
+      return cached
+    }
+
+    var height = frameProvider.totalContentHeight { [self] month in
+      monthHeaderHeight(for: month)
+    }
+
+    if case .vertical(let options) = content.monthsLayout, options.pinDaysOfWeekToTop {
+      height += frameProvider.dayOfWeekSize.height + content.verticalDayMargin
+    }
+
+    let result = min(height, .maxLayoutValue)
+    _totalContentHeight = result
+    return result
+  }
+
   // MARK: Private
 
   private let layoutItemTypeEnumerator: LayoutItemTypeEnumerator
   private let frameProvider: FrameProvider
 
+  private var _totalContentHeight: CGFloat?
   private var sizingMonthHeaderViewsForViewDifferentiators = [
     _CalendarItemViewDifferentiator: UIView
   ]()

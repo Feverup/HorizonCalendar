@@ -103,6 +103,14 @@ public final class CalendarView: UIView {
     visibleItemsDetails?.visibleDayRange
   }
 
+  /// The total height of all calendar content when using a vertical months layout.
+  /// Accounts for actual week row counts per month, month header heights, inter-month spacing,
+  /// and pinned days-of-week rows. Returns `0` if the view has not been laid out.
+  public var totalContentHeight: CGFloat {
+    guard bounds.width > 0 else { return 0 }
+    return visibleItemsProvider.totalContentHeight()
+  }
+
   /// `CalendarView` only supports positive values for `layoutMargins`. Negative values will be changed to `0`.
   public override var layoutMargins: UIEdgeInsets {
     get { super.layoutMargins }

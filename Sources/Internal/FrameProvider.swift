@@ -81,6 +81,36 @@ final class FrameProvider {
       content.monthDayInsets.bottom
   }
 
+  func totalContentHeight(monthHeaderHeightProvider: (Month) -> CGFloat) -> CGFloat {
+    var totalHeight: CGFloat = 0
+    var currentMonth = content.monthRange.lowerBound
+    var isFirstMonth = true
+
+    while true {
+      if !isFirstMonth {
+        totalHeight += content.interMonthSpacing
+      }
+
+      let headerHeight = monthHeaderHeightProvider(currentMonth)
+      totalHeight += heightOfMonth(currentMonth, monthHeaderHeight: headerHeight)
+
+      if totalHeight >= .maxLayoutValue {
+        return .maxLayoutValue
+      }
+
+      if currentMonth == content.monthRange.upperBound {
+        break
+      }
+
+      let nextMonth = calendar.month(byAddingMonths: 1, to: currentMonth)
+      guard nextMonth > currentMonth else { break }
+      currentMonth = nextMonth
+      isFirstMonth = false
+    }
+
+    return totalHeight
+  }
+
   func originOfMonth(
     containing layoutItem: LayoutItem,
     monthHeaderHeight: CGFloat
